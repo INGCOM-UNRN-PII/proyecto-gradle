@@ -1,0 +1,37 @@
+name: programacion2
+on: [workflow_dispatch]
+
+jobs:
+  checkstyle:
+    name: Chequeos automaticos con reviewdog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Ejecutar chequeos
+        run: ./gradlew check
+
+      - name: Configurar reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Ejecutar reviewdog en el codigo
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.REVIEWDOG_GITHUB_API_TOKEN }}
+        run: cat ./build/reports/checkstyle/main.xml |
+          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-review"
+
+      - name: Ejecutar reviewdog en los tests
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.REVIEWDOG_GITHUB_API_TOKEN }}
+        run: cat ./build/reports/checkstyle/test.xml |
+          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-review"
