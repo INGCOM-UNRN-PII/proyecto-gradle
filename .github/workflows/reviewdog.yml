@@ -27,14 +27,14 @@ jobs:
         with:
           reviewdog_version: latest
 
-      - name: Ejecutar reviewdog en el codigo
+      - name: Ejecutar checkstyle en el codigo
         env:
           github_token: ${{ secrets.github_token }}
         run: cat ./build/reports/checkstyle/main.xml |
-          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-review"
+          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-check"
 
-      - name: Ejecutar reviewdog en los tests
+      - name: Ejecutar checkstyle en los tests
         env:
           github_token: ${{ secrets.github_token }}
         run: cat ./build/reports/checkstyle/test.xml |
-          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-review"
+          reviewdog -f=checkstyle -name="checkstyle" -reporter="github-pr-check"
