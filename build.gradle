@@ -2,12 +2,21 @@ plugins {
     id 'java'
     id 'pmd'
     id 'checkstyle'
+    id 'application'
 }
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+application {
+    mainClass = "ar.unrn.LoaderApp"
+}
+
+run {
+    standardInput = System.in
 }
 
 group = 'ar.unrn'
