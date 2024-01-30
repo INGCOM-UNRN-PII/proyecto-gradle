@@ -13,7 +13,8 @@ import java.util.List;
  * Esta clase se encarga de ejecutar todos los main en esta ubicación.
  * No es necesaria (o recomendada) su modificación.
  */
-@SuppressWarnings("unchecked")
+
+@SuppressWarnings({"unchecked", "PMD"})
 public class LoaderApp {
 
     /**
@@ -62,7 +63,7 @@ public class LoaderApp {
     }
 
     // Métodos extraídos de:
-    // https://web.archive.org/web/20090227113602/http://snippets.dzone.com:80/posts/show/4831
+    // http://snippets.dzone.com/posts/show/4831
 
     /**
      * Scans all classes accessible from the context class loader which belong
@@ -71,7 +72,7 @@ public class LoaderApp {
      * @param packageName The base package to fetch
      * @return The classes in packageName
      * @throws ClassNotFoundException when a file looks like a class but isn't
-     * @throws IOException when a file has access problems
+     * @throws IOException            when a file has access problems
      */
     private static Class[] getClasses(String packageName) throws
             ClassNotFoundException, IOException {
@@ -93,7 +94,7 @@ public class LoaderApp {
 
     /**
      * Recursive method used to find all classes in a given directory
-     *      and subdirectories.
+     * and subdirectories.
      *
      * @param directory   The base directory
      * @param packageName The package name for classes found inside the base
@@ -109,13 +110,16 @@ public class LoaderApp {
         }
         File[] files = directory.listFiles();
         for (File file : files) {
+            String fileName = file.getName();
             if (file.isDirectory()) {
-                assert !file.getName().contains(".");
-                classes.addAll(findClasses(file,
-                        packageName + "." + file.getName()));
-            } else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(
-                        packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+                assert !fileName.contains(".");
+                classes.addAll(findClasses(file, packageName + "." + fileName));
+            } else if (fileName.endsWith(".class")) {
+                final int extension = ".class".length();
+                String klassName = packageName + '.';
+                klassName += fileName.substring(0, fileName.length() - extension);
+
+                classes.add(Class.forName(klassName));
             }
         }
         return classes;
