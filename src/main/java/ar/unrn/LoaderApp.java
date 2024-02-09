@@ -43,7 +43,7 @@ public class LoaderApp {
         for (Class klass : clases) {
             String actual = klass.getName();
             if (!klass.equals(LoaderApp.class)) {
-                System.out.printf("-Start: %s-----------\n", actual);
+                System.out.printf("-Start: %s-----------%n", actual);
                 try {
                     Method principal = klass.getMethod("main", String[].class);
                     try {
@@ -55,7 +55,7 @@ public class LoaderApp {
                         e.printStackTrace();
                     }
                 } catch (NoSuchMethodException e) {
-                    System.out.printf("La clase '%s': no posee un main\n", actual);
+                    System.out.printf("La clase '%s': no posee un main%n", actual);
                 }
             }
             System.out.println("-End.-----");
