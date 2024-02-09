@@ -14,7 +14,7 @@ import java.util.List;
  * No es necesaria (o recomendada) su modificación.
  */
 
-@SuppressWarnings({"unchecked", "PMD"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class LoaderApp {
 
     /**
