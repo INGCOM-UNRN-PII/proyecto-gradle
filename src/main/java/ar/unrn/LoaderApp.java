@@ -127,14 +127,15 @@ public class LoaderApp {
     /**
      * Esta excepción indica fallos internos del cargador de mains
      */
-    public static class InternalLoaderException extends RuntimeException{
+    public static class InternalLoaderException extends RuntimeException {
         /**
          * Los fallos internos, provienen exclusivamente de otros por lo
          * que se encadenan. Es obligatorio agregar también contexto textual.
+         *
          * @param message la descripción de la situación que provoco el problema.
-         * @param reason la excepción especifica que fue recibida.
+         * @param reason  la excepción especifica que fue recibida.
          */
-        public InternalLoaderException(String message, Throwable reason){
+        public InternalLoaderException(String message, Throwable reason) {
             super(message, reason);
         }
     }
