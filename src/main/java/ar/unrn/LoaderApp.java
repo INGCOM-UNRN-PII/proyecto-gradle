@@ -51,7 +51,7 @@ public class LoaderApp {
                     } catch (IllegalAccessException e) {
                         throw new InternalLoaderException("Fallo de permisos", e);
                     } catch (InvocationTargetException e) {
-                        System.out.println("Excepción al llamar el main");
+                        System.out.printf("Excepción al llamar el main de %s%n", actual);
                         e.printStackTrace();
                     }
                 } catch (NoSuchMethodException e) {
