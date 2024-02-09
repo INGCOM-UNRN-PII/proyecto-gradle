@@ -3,11 +3,12 @@ package ar.unrn;
 /**
  * Esta es una plantilla de main.
  * Usen Shift+F6 sobre el nombre para cambiarlo al que necesiten.
+ * ¡Esto lo pueden utilizar en cualquier identificador!
  */
 public class PlantillaApp {
 
     /**
-     * Una ejemplo de valor constante.
+     * Un ejemplo de valor constante.
      */
     public static final int MAXIMO = 10;
 
@@ -17,18 +18,15 @@ public class PlantillaApp {
      * @param args son los argumentos de invocación.
      */
     public static void main(String[] args) {
-        // Press Alt+Intro with your caret at the
-        // highlighted text to see how IntelliJ IDEA
-        // suggests fixing it.
+        // Con Alt+Enter IntelliJ IDEA nos mostrará sugerencias
+        // para modificar el bloque en el que estamos ubicados.
         System.out.printf("Hola y bienvenido! %s%n", "Estudiante");
 
-        // Press Mayús+F10 or click the green arrow button
-        // in the gutter to run the code.
+        // Con Shift+F10 o la flecha verde del margen,
+        // podemos ejecutar este main
         for (int i = 0; i <= MAXIMO; i++) {
-
-            // Press Mayús+F9 to start debugging your code.
-            // We have set one breakpoint for you, but you
-            // can always add more by pressing Ctrl+F8.
+            // Con Shift+F9 comenzaremos a debuggear el código.
+            // Y podemos agregar breakpoints con Ctrl+F8.
             System.out.println("i = " + suma(i, MAXIMO));
         }
     }
