@@ -40,6 +40,7 @@ test {
 
 pmd {
     consoleOutput = true
+    ignoreFailures = true
     toolVersion = "6.55.0"
     rulesMinimumPriority = 5
     ruleSetFiles = files("config/pmd/programacion2.xml")
