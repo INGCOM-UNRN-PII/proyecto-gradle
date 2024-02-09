@@ -104,22 +104,21 @@ public class LoaderApp {
      */
     private static List<Class> findClasses(File directory, String packageName)
             throws ClassNotFoundException {
-        List<Class> classes = new ArrayList<Class>();
-        if (!directory.exists()) {
-            return classes;
-        }
-        File[] files = directory.listFiles();
-        for (File file : files) {
-            String fileName = file.getName();
-            if (file.isDirectory()) {
-                assert !fileName.contains(".");
-                classes.addAll(findClasses(file, packageName + "." + fileName));
-            } else if (fileName.endsWith(".class")) {
-                final int extension = ".class".length();
-                String klassName = packageName + '.'
-                        + fileName.substring(0, fileName.length() - extension);
-
-                classes.add(Class.forName(klassName));
+        List<Class> classes = new ArrayList<>();
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            assert files != null;
+            for (File file : files) {
+                String fileName = file.getName();
+                if (file.isDirectory()) {
+                    assert !fileName.contains(".");
+                    classes.addAll(findClasses(file, packageName + "." + fileName));
+                } else if (fileName.endsWith(".class")) {
+                    final int extension = ".class".length();
+                    String klassName = packageName + '.'
+                            + fileName.substring(0, fileName.length() - extension);
+                    classes.add(Class.forName(klassName));
+                }
             }
         }
         return classes;
