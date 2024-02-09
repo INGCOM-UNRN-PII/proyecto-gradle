@@ -20,7 +20,7 @@ public class PlantillaApp {
         // Press Alt+Intro with your caret at the
         // highlighted text to see how IntelliJ IDEA
         // suggests fixing it.
-        System.out.printf("Hello and welcome! %s\n", "Estudiante");
+        System.out.printf("Hello and welcome! %s%n", "Estudiante");
 
         // Press Mayús+F10 or click the green arrow button
         // in the gutter to run the code.
