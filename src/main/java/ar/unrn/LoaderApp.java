@@ -125,7 +125,7 @@ public class LoaderApp {
     }
 
     /**
-     * Esta excepción indica fallos internos del cargador de mains
+     * Esta excepción indica fallos internos del cargador de mains.
      */
     public static class InternalLoaderException extends RuntimeException {
         /**
