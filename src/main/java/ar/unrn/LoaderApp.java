@@ -129,6 +129,11 @@ public class LoaderApp {
      */
     public static class InternalLoaderException extends RuntimeException {
         /**
+         * Forma parte de lo necesario para crear Excepciones y viene por
+         * Serializable.
+         */
+        private static final long serialVersionUID = 42L;
+        /**
          * Los fallos internos, provienen exclusivamente de otros por lo
          * que se encadenan. Es obligatorio agregar también contexto textual.
          *
