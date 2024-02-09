@@ -124,16 +124,17 @@ public class LoaderApp {
         }
         return classes;
     }
+
+    /**
+     * Esta excepción indica fallos internos del cargador de mains
+     */
     public static class InternalLoaderException extends RuntimeException{
-        public InternalLoaderException(){
-            super();
-        }
-        public InternalLoaderException(String message){
-            super(message);
-        }
-        public InternalLoaderException(Throwable reason){
-            super(reason);
-        }
+        /**
+         * Los fallos internos, provienen exclusivamente de otros por lo
+         * que se encadenan. Es obligatorio agregar también contexto textual.
+         * @param message la descripción de la situación que provoco el problema.
+         * @param reason la excepción especifica que fue recibida.
+         */
         public InternalLoaderException(String message, Throwable reason){
             super(message, reason);
         }
