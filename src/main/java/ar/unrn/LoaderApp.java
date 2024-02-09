@@ -36,9 +36,9 @@ public class LoaderApp {
         try {
             clases = getClasses(PACKAGE_TO_RUN);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("El paquete no existe", e);
+            throw new InternalLoaderException("El paquete no existe", e);
         } catch (IOException e) {
-            throw new RuntimeException("Error de acceso al recurso", e);
+            throw new InternalLoaderException("Error de acceso al recurso", e);
         }
         for (Class klass : clases) {
             String actual = klass.getName();
@@ -49,7 +49,7 @@ public class LoaderApp {
                     try {
                         principal.invoke(null, (Object) args);
                     } catch (IllegalAccessException e) {
-                        throw new RuntimeException("Fallo de permisos", e);
+                        throw new InternalLoaderException("Fallo de permisos", e);
                     } catch (InvocationTargetException e) {
                         System.out.println("Excepción al llamar el main");
                         e.printStackTrace();
@@ -123,5 +123,19 @@ public class LoaderApp {
             }
         }
         return classes;
+    }
+    public static class InternalLoaderException extends RuntimeException{
+        public InternalLoaderException(){
+            super();
+        }
+        public InternalLoaderException(String message){
+            super(message);
+        }
+        public InternalLoaderException(Throwable reason){
+            super(reason);
+        }
+        public InternalLoaderException(String message, Throwable reason){
+            super(message, reason);
+        }
     }
 }
