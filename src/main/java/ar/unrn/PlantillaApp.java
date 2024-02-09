@@ -32,7 +32,7 @@ public class PlantillaApp {
     }
 
     /**
-     * Suma dos valores.
+     * Retorna la suma de dos valores.
      *
      * @param primer  termino a sumar
      * @param segundo termino a sumar
