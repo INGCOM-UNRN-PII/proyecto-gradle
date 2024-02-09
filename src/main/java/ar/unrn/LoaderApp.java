@@ -116,8 +116,8 @@ public class LoaderApp {
                 classes.addAll(findClasses(file, packageName + "." + fileName));
             } else if (fileName.endsWith(".class")) {
                 final int extension = ".class".length();
-                String klassName = packageName + '.';
-                klassName += fileName.substring(0, fileName.length() - extension);
+                String klassName = packageName + '.'
+                        + fileName.substring(0, fileName.length() - extension);
 
                 classes.add(Class.forName(klassName));
             }
