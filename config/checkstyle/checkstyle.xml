@@ -97,7 +97,11 @@
     <!-- </module> -->
 
     <module name="TreeWalker">
-
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\+\s*=|-\s*=|\*\s*=/|/\s*=|%=\s*=|&amp;=\s*=|\|\s*=\|\^=\s*=\|&gt;&gt;=\s*=\|&lt;&lt;=\s*=\|&gt;&gt;&gt;=\s*="/>
+            <property name="message" value="Evitá el uso de los operadores compuestos como: '+=', '-=', '*=', '/=', '%=', '&amp;=', '|=', '^=', '&gt;&gt;=', '&lt;&lt;=', '&gt;&gt;&gt;='."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
         <!-- Checks for Javadoc comments.                     -->
         <!-- See https://checkstyle.org/config_javadoc.html -->
         <module name="InvalidJavadocPosition"/>
