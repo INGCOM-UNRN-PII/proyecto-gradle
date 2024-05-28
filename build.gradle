@@ -6,6 +6,7 @@ plugins {
     id 'checkstyle'
     id 'application'
     id("com.github.spotbugs") version "6.0.7"
+    id 'jacoco'
 }
 
 java {
@@ -38,8 +39,16 @@ dependencies {
 test {
     useJUnitPlatform()
     timeout = Duration.ofMinutes(1) // Un minuto para resolver cuelgues en los tests.
+    finalizedBy jacocoTestReport
 }
 
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = true
+        csv.required = true
+    }
+}
 
 pmd {
     consoleOutput = true
