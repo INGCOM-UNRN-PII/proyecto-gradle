@@ -1,3 +1,5 @@
+import com.github.spotbugs.snom.SpotBugsTask
+
 import java.time.Duration
 
 plugins {
@@ -5,18 +7,18 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'application'
-    id("com.github.spotbugs") version "6.0.7"
+    id 'com.github.spotbugs' version '6.0.7'
     id 'jacoco'
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 application {
-    mainClass = "ar.unrn.LoaderApp"
+    mainClass = 'ar.unrn.LoaderApp'
 }
 
 run {
@@ -32,8 +34,6 @@ repositories {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-//    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.12.0'
 }
 
 test {
@@ -42,20 +42,24 @@ test {
     finalizedBy jacocoTestReport
 }
 
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
 jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
+    dependsOn test
     reports {
-        xml.required = true
-        csv.required = true
+        xml.required.set(true)
+        csv.required.set(true)
     }
 }
 
 pmd {
+    toolVersion = "7.0.0"
     consoleOutput = true
     ignoreFailures = true
-    toolVersion = "6.55.0"
-    rulesMinimumPriority = 5
-    ruleSetFiles = files("config/pmd/programacion2.xml")
+    ruleSetFiles = files('config/pmd/programacion2.xml')
     ruleSets = []
 }
 
@@ -63,35 +67,22 @@ spotbugs {
     toolVersion = '4.8.3'
 }
 
-spotbugsMain {
+tasks.withType(SpotBugsTask).configureEach {
     reports {
-        html {
-            enabled = true
-        }
-        xml {
-            enabled = true
-        }
-    }
-}
-spotbugsTest {
-    reports {
-        html {
-            enabled = true
-        }
-        xml {
-            enabled = true
-        }
+        html.required.set(true)
+        xml.required.set(true)
     }
 }
 
 checkstyle {
-    toolVersion '10.9.2'
+    toolVersion = '10.9.2'
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
 }
 
-checkstyleMain {
+tasks.withType(Checkstyle).configureEach {
     source = 'src/main/java'
 }
 
-checkstyleTest {
+tasks.withType(Checkstyle).configureEach {
     source = 'src/test/java'
 }
