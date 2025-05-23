@@ -78,11 +78,3 @@ checkstyle {
     toolVersion = '10.9.2'
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
 }
-
-tasks.withType(Checkstyle).configureEach {
-    source = 'src/main/java'
-}
-
-tasks.withType(Checkstyle).configureEach {
-    source = 'src/test/java'
-}
