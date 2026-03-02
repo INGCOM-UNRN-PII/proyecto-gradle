@@ -30,6 +30,13 @@
         <exclude name="SystemPrintln" />
     </rule>
     
+    <!-- Excluir AvoidPrintStackTrace en métodos main -->
+    <rule ref="category/java/bestpractices.xml/AvoidPrintStackTrace">
+        <properties>
+            <property name="violationSuppressXPath" value="//MethodDeclaration[@Name='main']" />
+        </properties>
+    </rule>
+    
     <!-- 0x5003 - No usar parámetros como variables si cambia significado -->
     <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters">
         <properties>
