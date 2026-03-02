@@ -1,3 +1,9 @@
+// ============================================================================
+// Build Configuration Enhanced - Programación 2 UNRN
+// Edición 2026
+// ============================================================================
+
+
 import com.github.spotbugs.snom.SpotBugsTask
 
 import java.time.Duration
@@ -9,11 +15,17 @@ plugins {
     id 'application'
     id 'com.github.spotbugs' version '6.0.7'
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.19.0-rc.3'
+    id 'net.ltgt.errorprone' version '3.1.0'
 }
+
+// ============================================================================
+// CONFIGURACIÓN BÁSICA
+// ============================================================================
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -32,19 +44,52 @@ repositories {
     mavenCentral()
 }
 
+// ============================================================================
+// DEPENDENCIAS
+// ============================================================================
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    // ========== FASE 1: ArchUnit para reglas de arquitectura ==========
+    // Reglas: 0x2001, 0x2003, 0x2008, 0x2009, 0x200C, 0x200D, 0x2012
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+
+    // ========== FASE 1: Error Prone + NullAway ==========
+    // Error Prone - Reglas: 0xE001, 0xE002, 0xE003, 0xE004, 0x200F, 0x2010
+    errorprone 'com.google.errorprone:error_prone_core:2.48.0'
+
+    // NullAway - Reglas: 0x200B, 0x2011, 0x3006, 0x3007
+    errorprone 'com.uber.nullaway:nullaway:0.13.1'
+
+    // Anotaciones para NullAway
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    testCompileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 }
+
+// ============================================================================
+// TESTING
+// ============================================================================
+
 
 test {
     useJUnitPlatform()
     timeout = Duration.ofMinutes(1) // Un minuto para resolver cuelgues en los tests.
     finalizedBy jacocoTestReport
+
+    // Configuración para mejor output
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = false
+    }
 }
 
+// ============================================================================
+// JACOCO - COBERTURA DE CÓDIGO
+// ============================================================================
 
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = "0.8.14"
 }
 
 jacocoTestReport {
@@ -53,18 +98,57 @@ jacocoTestReport {
         xml.required.set(true)
         csv.required.set(true)
     }
+    // Excluir clases generadas
+    classDirectories.setFrom(
+            files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/LoaderApp.class',
+                        '**/*Test.class'
+                ])
+            })
+    )
 }
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80  // 80% cobertura mínima
+            }
+        }
+    }
+}
+
+
+// ============================================================================
+// PMD - ANÁLISIS ESTÁTICO
+// ============================================================================
 
 pmd {
     toolVersion = "7.0.0"
     consoleOutput = true
-    ignoreFailures = true
+    ignoreFailures = false
     ruleSetFiles = files('config/pmd/programacion2.xml')
     ruleSets = []
 }
 
+tasks.withType(Pmd) {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+// ============================================================================
+// SPOTBUGS - DETECCIÓN DE BUGS
+// ============================================================================
+
+
 spotbugs {
     toolVersion = '4.8.3'
+    ignoreFailures = false
+    effort = com.github.spotbugs.snom.Effort.valueOf('MAX')
+    reportLevel = com.github.spotbugs.snom.Confidence.valueOf('LOW')
 }
 
 tasks.withType(SpotBugsTask).configureEach {
@@ -74,7 +158,93 @@ tasks.withType(SpotBugsTask).configureEach {
     }
 }
 
+// ============================================================================
+// CHECKSTYLE - ESTILO DE CÓDIGO
+// ============================================================================
+
 checkstyle {
-    toolVersion = '10.9.2'
+    toolVersion = '10.21.4'
     configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
 }
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+// ============================================================================
+// ERROR PRONE - DETECCIÓN DE BUGS EN COMPILACIÓN (FASE 1)
+// ============================================================================
+// Reglas automatizadas adicionales: 6
+// 0xE001, 0xE002, 0xE003, 0xE004, 0x200F, 0x2010
+// ============================================================================
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        disableWarningsInGeneratedCode = true
+
+        // Checks válidos de Error Prone
+        check("MissingOverride", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("ModifyCollectionInEnhancedForLoop", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("ReturnValueIgnored", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("CheckReturnValue", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("EqualsIncompatibleType", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("EqualsHashCode", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("DeadException", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+
+        // NullAway
+        check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "ar.unrn")
+        option("NullAway:TreatGeneratedAsUnannotated", "true")
+        option("NullAway:CheckOptionalEmptiness", "true")
+        option("NullAway:ExcludedClassAnnotations", "org.junit.jupiter.api.Test")
+    }
+
+    options.compilerArgs << '-parameters'
+    // Required for Error Prone 2.48+ with Gradle 9
+    options.compilerArgs << '-XDshould-stop.ifError=FLOW'
+}
+
+// ============================================================================
+// PITEST - MUTATION TESTING (FASE 2)
+// ============================================================================
+// Reglas automatizadas adicionales: 4
+// 0x4001, 0x4002, 0x4004, 0x4005
+// ============================================================================
+
+pitest {
+    targetClasses = ['ar.unrn.*']
+    targetTests = ['ar.unrn.*Test']
+
+    // Performance
+    threads = Runtime.runtime.availableProcessors()
+
+    // Reportes
+    outputFormats = ['HTML', 'XML']
+    timestampedReports = false
+
+    // Mutadores para detectar tests débiles
+    mutators = [
+            'CONDITIONALS_BOUNDARY',
+            'INCREMENTS',
+            'INVERT_NEGS',
+            'MATH',
+            'NEGATE_CONDITIONALS',
+            'RETURN_VALS',
+            'VOID_METHOD_CALLS'
+    ]
+
+    // Umbrales de calidad
+    mutationThreshold = 80
+    coverageThreshold = 90
+
+    // Excluir clases de la mutación
+    excludedClasses = [
+            'ar.unrn.LoaderApp',
+            'ar.unrn.*.*Builder'
+    ]
+}
+
