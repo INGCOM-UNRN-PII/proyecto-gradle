@@ -4,31 +4,22 @@
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <!--
-
-  Checkstyle configuration that checks the sun coding conventions from:
-
-    - the Java Language Specification at
-      https://docs.oracle.com/javase/specs/jls/se11/html/index.html
-
-    - the Sun Code Conventions at https://www.oracle.com/java/technologies/javase/codeconventions-contents.html
-
-    - the Javadoc guidelines at
-      https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html
-
-    - the JDK Api documentation https://docs.oracle.com/en/java/javase/11/
-
-    - some best practices
-
-  Checkstyle is very configurable. Be sure to read the documentation at
-  https://checkstyle.org (or in your downloaded distribution).
-
-  Most Checks are configurable, be sure to consult the documentation.
-
-  To completely disable a check, just comment it out or delete it from the file.
-  To suppress certain violations please review suppression filters.
-
-  Finally, it is worth reading the documentation.
-
+  Configuración Checkstyle para Programación 2 - UNRN Sede Andina
+  
+  Esta configuración implementa las reglas definidas en reglas.md
+  
+  Categorías de reglas (numeración hexadecimal):
+  - 0x0xxx: Nomenclatura y formato general
+  - 0x1xxx: Documentación y comentarios
+  - 0x2xxx: Diseño de clases y POO
+  - 0x3xxx: Manejo de excepciones
+  - 0x4xxx: Testing
+  - 0x5xxx: Estructuras de control
+  - 0x6xxx: Restricciones de programación funcional
+  - 0xExxx: Errores comunes (Error-Prone)
+  
+  Documentación: https://checkstyle.org
+  Reglas completas: ver reglas.md en el repositorio del proyecto
 -->
 
 <module name="Checker">
@@ -97,99 +88,397 @@
     <!-- </module> -->
 
     <module name="TreeWalker">
+        <!-- ========================================= -->
+        <!-- Serie 0x5 - Estructuras de Control       -->
+        <!-- ========================================= -->
+        
+        <!-- 0x5001 - Sin usar la asignación compuesta -->
         <module name="RegexpSinglelineJava">
-            <property name="format" value="\+\s*=|-\s*=|\*\s*=/|/\s*=|%=\s*=|&amp;=\s*=|\|\s*=\|\^=\s*=\|&gt;&gt;=\s*=\|&lt;&lt;=\s*=\|&gt;&gt;&gt;=\s*="/>
-            <property name="message" value="Evitá el uso de los operadores compuestos como: '+=', '-=', '*=', '/=', '%=', '&amp;=', '|=', '^=', '&gt;&gt;=', '&lt;&lt;=', '&gt;&gt;&gt;='."/>
+            <property name="format" value="\+\s*=|-\s*=|\*\s*=|/\s*=|%\s*=|&amp;\s*=|\|\s*=|\^\s*=|&gt;&gt;\s*=|&lt;&lt;\s*=|&gt;&gt;&gt;\s*="/>
+            <property name="message" value="[0x5001] Sin usar asignación compuesta (+=, -=, etc). Usar: variable = variable + valor"/>
             <property name="ignoreComments" value="true"/>
         </module>
-        <!-- Checks for Javadoc comments.                     -->
-        <!-- See https://checkstyle.org/config_javadoc.html -->
-        <module name="InvalidJavadocPosition"/>
-        <module name="JavadocMethod"/>
-        <module name="JavadocType"/>
-        <module name="JavadocVariable"/>
-        <module name="JavadocStyle"/>
-        <module name="MissingJavadocMethod"/>
 
-        <!-- Checks for Naming Conventions.                  -->
-        <!-- See https://checkstyle.org/config_naming.html -->
-        <module name="ConstantName"/>
-        <module name="LocalFinalVariableName"/>
-        <module name="LocalVariableName"/>
-        <module name="MemberName"/>
-        <module name="MethodName"/>
-        <module name="PackageName"/>
-        <module name="ParameterName"/>
-        <module name="StaticVariableName"/>
-        <module name="TypeName"/>
-
-        <!-- Checks for imports                              -->
-        <!-- See https://checkstyle.org/config_imports.html -->
-        <module name="AvoidStarImport"/>
-        <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
-        <module name="RedundantImport"/>
-        <module name="UnusedImports">
-            <property name="processJavadoc" value="false"/>
+        <!-- 0x5002 - Sin break y continue en bucles -->
+        <module name="IllegalToken">
+            <property name="tokens" value="LITERAL_BREAK, LITERAL_CONTINUE"/>
+            <message key="illegal.token" value="[0x5002] No usar break ni continue, usar banderas booleanas en su lugar"/>
         </module>
 
-        <!-- Checks for Size Violations.                    -->
-        <!-- See https://checkstyle.org/config_sizes.html -->
-        <module name="MethodLength"/>
-        <module name="ParameterNumber"/>
+        <!-- 0x5000 - Un solo return por método -->
+        <module name="ReturnCount">
+            <property name="max" value="1"/>
+            <property name="maxForVoid" value="0"/>
+            <message key="return.count" value="[0x5000] Solo un return por método (al final para no-void, ninguno para void)"/>
+        </module>
 
-        <!-- Checks for whitespace                               -->
-        <!-- See https://checkstyle.org/config_whitespace.html -->
-        <module name="EmptyForIteratorPad"/>
-        <module name="GenericWhitespace"/>
-        <module name="MethodParamPad"/>
-        <module name="NoWhitespaceAfter"/>
-        <module name="NoWhitespaceBefore"/>
-        <module name="OperatorWrap"/>
-        <module name="ParenPad"/>
-        <module name="TypecastParenPad"/>
-        <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/>
+        <!-- ========================================= -->
+        <!-- Serie 0x6 - Programación Funcional       -->
+        <!-- ========================================= -->
+        
+        <!-- 0x6002 - No usar la API de Streams -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.stream\(\)"/>
+            <property name="message" value="[0x6002] No usar Stream API. Usar bucles for/while tradicionales"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.parallelStream\(\)"/>
+            <property name="message" value="[0x6002] No usar Stream API. Usar bucles for/while tradicionales"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
+        <!-- 0x6000 - No usar expresiones lambda -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="-&gt;"/>
+            <property name="message" value="[0x6000] No usar lambdas (->). Usar bucles for/while tradicionales"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
+        <!-- 0x6001 - No usar referencias a métodos -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="::"/>
+            <property name="message" value="[0x6001] No usar method references (::). Usar bucles for/while tradicionales"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
+        <!-- 0x6002 - No usar operaciones de streams -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.map\("/>
+            <property name="message" value="[0x6002] No usar Stream.map(). Usar bucles for/while tradicionales"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.filter\("/>
+            <property name="message" value="[0x6002] No usar Stream.filter(). Usar bucles for/while con if"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.reduce\("/>
+            <property name="message" value="[0x6006] No usar reduce(). Usar bucles for/while con acumulador"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.collect\("/>
+            <property name="message" value="[0x6006] No usar collect(). Usar bucles for/while agregando a colección"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
+        <!-- 0x6005 - No usar métodos funcionales de colecciones -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.forEach\("/>
+            <property name="message" value="[0x6005] No usar forEach(). Usar bucles for-each o for tradicional"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.flatMap\("/>
+            <property name="message" value="[0x6002] No usar flatMap(). Usar bucles anidados"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.removeIf\("/>
+            <property name="message" value="[0x6005] No usar removeIf(). Usar Iterator con remove()"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.replaceAll\("/>
+            <property name="message" value="[0x6005] No usar replaceAll() de colecciones. Usar bucle con set()"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        
+        <!-- 0x6004 - Evitar Optional -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="Optional\."/>
+            <property name="message" value="[0x6004] No usar Optional. Retornar null documentado o lanzar excepción"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0xE - Errores Comunes              -->
+        <!-- ========================================= -->
+
+        <!-- 0xE000 - No concatenar String en un bucle -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="(for|while)\s*\([^)]*\)\s*\{[^}]*\+\s*=\s*&quot;"/>
+            <property name="message" value="[0xE000] No concatenar String en bucle. Usar StringBuilder"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0x3 - Manejo de Excepciones        -->
+        <!-- ========================================= -->
+
+        <!-- 0x3009 - No lanzar excepciones base -->
+        <module name="IllegalThrows">
+            <property name="illegalClassNames" value="java.lang.Exception, java.lang.RuntimeException, java.lang.Throwable, java.lang.Error"/>
+            <message key="illegal.throw" value="[0x3009] No lanzar excepciones base. Crear excepciones específicas del dominio"/>
+        </module>
+
+        <!-- 0x3005 - Sean específicos con lo que atajan -->
+        <module name="IllegalCatch">
+            <property name="illegalClassNames" value="java.lang.Exception, java.lang.RuntimeException, java.lang.Throwable, java.lang.Error"/>
+            <message key="illegal.catch" value="[0x3005] No atajar excepciones genéricas. Atajar excepciones específicas"/>
+        </module>
+        <!-- ========================================= -->
+        <!-- Serie 0x1 - Documentación                -->
+        <!-- ========================================= -->
+        
+        <!-- 0x1000 - La documentación debe seguir formato Javadoc estándar -->
+        <!-- 0x1001 - Clases, atributos y métodos llevan documentación -->
+        <module name="InvalidJavadocPosition">
+            <message key="invalid.position" value="[0x1000] Posición inválida del comentario Javadoc"/>
+        </module>
+        <module name="JavadocMethod">
+            <message key="javadoc.missing" value="[0x1001] Falta documentación Javadoc para el método"/>
+        </module>
+        <module name="JavadocType">
+            <message key="javadoc.missing" value="[0x1001] Falta documentación Javadoc para la clase"/>
+        </module>
+        <module name="JavadocVariable">
+            <message key="javadoc.missing" value="[0x1001] Falta documentación Javadoc para el atributo"/>
+        </module>
+        <module name="JavadocStyle">
+            <message key="javadoc.missing" value="[0x1000] Falta documentación Javadoc"/>
+            <message key="javadoc.empty" value="[0x1000] Documentación Javadoc vacía"/>
+            <message key="javadoc.unclosedHtml" value="[0x1000] Etiqueta HTML sin cerrar en Javadoc"/>
+            <message key="javadoc.extraHtml" value="[0x1000] Etiqueta HTML de más en Javadoc"/>
+        </module>
+        <module name="MissingJavadocMethod">
+            <message key="javadoc.missing" value="[0x1001] Falta documentación Javadoc para el método"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0x0 - Nomenclatura                 -->
+        <!-- ========================================= -->
+        
+        <!-- 0x0001 - Clases en CamelloCase -->
+        <module name="TypeName">
+            <message key="name.invalidPattern" value="[0x0001] Las clases deben ir en CamelloCase (ej: CalculadoraAvanzada)"/>
+        </module>
+        
+        <!-- 0x0003 - Variables, parámetros en dromedarioCase -->
+        <module name="LocalFinalVariableName">
+            <message key="name.invalidPattern" value="[0x0003] Las variables deben ir en dromedarioCase (ej: nombreCompleto)"/>
+        </module>
+        <module name="LocalVariableName">
+            <message key="name.invalidPattern" value="[0x0003] Las variables deben ir en dromedarioCase (ej: nombreCompleto)"/>
+        </module>
+        <module name="ParameterName">
+            <message key="name.invalidPattern" value="[0x0003] Los parámetros deben ir en dromedarioCase (ej: nombreCompleto)"/>
+        </module>
+        
+        <!-- 0x0004 - Métodos en dromedarioCase -->
+        <module name="MethodName">
+            <message key="name.invalidPattern" value="[0x0004] Los métodos deben ir en dromedarioCase (ej: calcularPromedio)"/>
+        </module>
+        
+        <!-- 0x0005 - Constantes en SNAKE_CASE -->
+        <module name="ConstantName">
+            <message key="name.invalidPattern" value="[0x0005] Las constantes deben ir en SNAKE_CASE mayúsculas (ej: MAX_INTENTOS)"/>
+        </module>
+        
+        <!-- 0x2001 - Atributos en dromedarioCase -->
+        <module name="MemberName">
+            <message key="name.invalidPattern" value="[0x2001] Los atributos deben ir en dromedarioCase (ej: numeroCuenta)"/>
+        </module>
+        
+        <module name="StaticVariableName">
+            <message key="name.invalidPattern" value="[0x0003] Las variables estáticas deben ir en dromedarioCase"/>
+        </module>
+        
+        <!-- 0x2003 - Paquetes en minúsculas comenzando con ar.unrn -->
+        <module name="PackageName">
+            <property name="format" value="^ar\.unrn(\.[a-z][a-z0-9]*)*$"/>
+            <message key="name.invalidPattern" value="[0x2003] Los paquetes deben comenzar con 'ar.unrn' e ir en minúsculas"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0x0 - Formato (continuación)       -->
+        <!-- ========================================= -->
+        
+        <!-- 0x000A - No hacer import paquete.* -->
+        <module name="AvoidStarImport">
+            <message key="import.avoidStar" value="[0x000A] No usar 'import paquete.*', importar solo lo necesario"/>
+        </module>
+        <module name="IllegalImport">
+            <message key="import.illegal" value="[0xA001] Import ilegal de paquete sun.*"/>
+        </module>
+        <module name="RedundantImport">
+            <message key="import.redundant" value="[0xA002] Import redundante"/>
+            <message key="import.redundancy" value="[0xA002] Import redundante de ''{0}''"/>
+            <message key="import.same" value="[0xA002] Import redundante del mismo paquete"/>
+            <message key="import.lang" value="[0xA002] Import redundante de java.lang"/>
+        </module>
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="false"/>
+            <message key="import.unused" value="[0xA003] Import no utilizado: ''{0}''"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0x2 - Diseño de Clases             -->
+        <!-- ========================================= -->
+        
+        <!-- 0x200A - Métodos deben tener máximo 20-30 líneas -->
+        <module name="MethodLength">
+            <property name="max" value="30"/>
+            <message key="maxLen.method" value="[0x200A] Método demasiado largo (máx 30 líneas, actual {1}). Extraer submétodos"/>
+        </module>
+        
+        <module name="ParameterNumber">
+            <property name="max" value="5"/>
+            <message key="maxParam" value="[0x2011] Demasiados parámetros (máx {0}, actual {1}). Considerar objeto de parámetros"/>
+        </module>
+
+        <!-- ========================================= -->
+        <!-- Serie 0x0 - Formato (whitespace)         -->
+        <!-- ========================================= -->
+        
+        <!-- 0x0009 - Un espacio antes y después de operadores -->
+        <module name="EmptyForIteratorPad">
+            <message key="ws.followed" value="[0x0009] ''{0}'' está seguido de espacio en blanco"/>
+            <message key="ws.notFollowed" value="[0x0009] ''{0}'' no está seguido de espacio en blanco"/>
+        </module>
+        <module name="GenericWhitespace">
+            <message key="ws.followed" value="[0x0009] ''{0}'' está seguido de espacio en blanco"/>
+            <message key="ws.notPreceded" value="[0x0009] ''{0}'' no está precedido de espacio en blanco"/>
+            <message key="ws.illegalFollow" value="[0x0009] ''{0}'' seguido de espacio en blanco ilegal"/>
+        </module>
+        <module name="MethodParamPad">
+            <message key="ws.preceded" value="[0x0009] ''{0}'' está precedido de espacio en blanco"/>
+            <message key="line.previous" value="[0x0009] ''{0}'' debe estar en la línea anterior"/>
+        </module>
+        <module name="NoWhitespaceAfter">
+            <message key="ws.followed" value="[0x0009] ''{0}'' está seguido de espacio en blanco"/>
+        </module>
+        <module name="NoWhitespaceBefore">
+            <message key="ws.preceded" value="[0x0009] ''{0}'' está precedido de espacio en blanco"/>
+            <message key="line.previous" value="[0x0009] ''{0}'' debe estar en la línea anterior"/>
+        </module>
+        <module name="OperatorWrap">
+            <message key="line.previous" value="[0x0009] ''{0}'' debe estar en la línea anterior"/>
+            <message key="line.new" value="[0x0009] ''{0}'' debe estar en una nueva línea"/>
+        </module>
+        <module name="ParenPad">
+            <message key="ws.followed" value="[0x0009] ''{0}'' está seguido de espacio en blanco"/>
+            <message key="ws.preceded" value="[0x0009] ''{0}'' está precedido de espacio en blanco"/>
+        </module>
+        <module name="TypecastParenPad">
+            <message key="ws.followed" value="[0x0009] ''{0}'' está seguido de espacio en blanco"/>
+            <message key="ws.preceded" value="[0x0009] ''{0}'' está precedido de espacio en blanco"/>
+        </module>
+        <module name="WhitespaceAfter">
+            <message key="ws.notFollowed" value="[0x0009] Debe haber un espacio después de ''{0}''"/>
+            <message key="ws.typeCast" value="[0x0009] Debe haber espacio después del typecast"/>
+        </module>
+        <module name="WhitespaceAround">
+            <message key="ws.notFollowed" value="[0x0009] ''{0}'' no está seguido de espacio"/>
+            <message key="ws.notPreceded" value="[0x0009] ''{0}'' no está precedido de espacio"/>
+        </module>
 
         <!-- Modifier Checks                                    -->
         <!-- See https://checkstyle.org/config_modifier.html -->
-        <module name="ModifierOrder"/>
-        <module name="RedundantModifier"/>
+        <module name="ModifierOrder">
+            <message key="mod.order" value="[0xA006] El modificador ''{0}'' está en el orden incorrecto"/>
+        </module>
+        <module name="RedundantModifier">
+            <message key="redundantModifier" value="[0xA007] Modificador redundante ''{0}''"/>
+        </module>
 
         <!-- Checks for blocks. You know, those {}'s         -->
         <!-- See https://checkstyle.org/config_blocks.html -->
-        <module name="AvoidNestedBlocks"/>
-        <module name="EmptyBlock"/>
-        <module name="LeftCurly"/>
-        <module name="NeedBraces"/>
-        <module name="RightCurly"/>
+        <!-- 0x0034 - No apilar líneas, todos los bloques con llaves -->
+        <module name="AvoidNestedBlocks">
+            <message key="block.nested" value="[0x000B] Evitar bloques anidados innecesarios"/>
+        </module>
+        <module name="EmptyBlock">
+            <message key="block.empty" value="[0xA008] Bloque vacío para ''{0}''"/>
+            <message key="block.noStatement" value="[0xA008] Bloque vacío sin declaraciones"/>
+        </module>
+        <module name="LeftCurly">
+            <message key="line.previous" value="[0x000B] ''{0}'' debe estar en la línea anterior"/>
+            <message key="line.new" value="[0x000B] ''{0}'' debe estar en una nueva línea"/>
+            <message key="line.break.after" value="[0x000B] ''{0}'' debe estar seguido de un salto de línea"/>
+        </module>
+        <module name="NeedBraces">
+            <message key="needBraces" value="[0x000B] Todos los bloques deben tener llaves para ''{0}''"/>
+        </module>
+        <module name="RightCurly">
+            <message key="line.alone" value="[0x000B] ''{0}'' debe estar solo en una línea"/>
+            <message key="line.new" value="[0x000B] ''{0}'' debe estar en una nueva línea"/>
+            <message key="line.same" value="[0x000B] ''{0}'' debe estar en la misma línea que ''{1}''"/>
+        </module>
 
         <!-- Checks for common coding problems               -->
         <!-- See https://checkstyle.org/config_coding.html -->
-        <module name="EmptyStatement"/>
-        <module name="EqualsHashCode"/>
-        <module name="HiddenField"/>
-        <module name="IllegalInstantiation"/>
-        <module name="InnerAssignment"/>
-        <module name="MagicNumber"/>
-        <module name="MissingSwitchDefault"/>
-        <module name="MultipleVariableDeclarations"/>
-        <module name="SimplifyBooleanExpression"/>
-        <module name="SimplifyBooleanReturn"/>
+        <module name="EmptyStatement">
+            <message key="empty.statement" value="[0xA009] Statement vacío (punto y coma de más)"/>
+        </module>
+        <!-- 0x002D - Implementar equals requiere hashCode -->
+        <module name="EqualsHashCode">
+            <message key="equals.noHashCode" value="[0x002D/0xE007] Implementar equals() requiere implementar hashCode()"/>
+            <message key="equals.noEquals" value="[0x002D/0xE007] Implementar hashCode() requiere implementar equals()"/>
+        </module>
+        <module name="HiddenField">
+            <message key="hidden.field" value="[0xA010] El parámetro ''{0}'' oculta un atributo de la clase"/>
+        </module>
+        <module name="IllegalInstantiation">
+            <message key="instantiation.avoid" value="[0xA011] Evitar instanciación directa de ''{0}''"/>
+        </module>
+        <!-- 0x0013 - No usar argumentos como variables si cambia su significado -->
+        <module name="InnerAssignment">
+            <message key="assignment.inner.avoid" value="[0x5003] Evitar asignaciones dentro de expresiones"/>
+        </module>
+        <module name="MagicNumber">
+            <message key="magic.number" value="[0xA012] Número mágico ''{0}'', debería ser una constante nombrada"/>
+        </module>
+        <module name="MissingSwitchDefault">
+            <message key="missing.switch.default" value="[0xA013] Falta caso 'default' en el switch"/>
+        </module>
+        <!-- 0x0013 - Variables y argumentos no deben cambiar de significado -->
+        <module name="MultipleVariableDeclarations">
+            <message key="multiple.variable.declarations" value="[0xA014] Cada variable debe declararse en su propia línea"/>
+            <message key="multiple.variable.declarations.comma" value="[0xA014] Cada variable debe declararse en su propia línea (separadas por comas)"/>
+        </module>
+        <module name="SimplifyBooleanExpression">
+            <message key="simplify.expression" value="[0xA015] Simplificar expresión booleana"/>
+        </module>
+        <module name="SimplifyBooleanReturn">
+            <message key="simplify.boolreturn" value="[0xA016] Simplificar retorno booleano"/>
+        </module>
 
         <!-- Checks for class design                         -->
         <!-- See https://checkstyle.org/config_design.html -->
-        <module name="DesignForExtension"/>
-        <module name="FinalClass"/>
+        <module name="DesignForExtension">
+            <message key="design.forExtension" value="[0xA017] El método ''{0}'' no está diseñado para extensión - debe ser abstracto, final, o vacío"/>
+        </module>
+        <module name="FinalClass">
+            <message key="final.class" value="[0xA018] La clase con solo constructores privados debería ser final"/>
+        </module>
         <!--        <module name="HideUtilityClassConstructor"/>-->
-        <module name="InterfaceIsType"/>
-        <module name="VisibilityModifier"/>
+        <module name="InterfaceIsType">
+            <message key="interface.type" value="[0xA019] Las interfaces deben definir un tipo, no solo constantes"/>
+        </module>
+        <!-- 0x002B - Atributos private o protected, nunca public -->
+        <module name="VisibilityModifier">
+            <message key="variable.notPrivate" value="[0x2001] Los atributos deben ser private (o protected con justificación), nunca public"/>
+        </module>
 
-        <!-- Miscellaneous other checks.                   -->
-        <!-- See https://checkstyle.org/config_misc.html -->
-        <module name="ArrayTypeStyle"/>
-        <!--        <module name="FinalParameters"/>-->
-        <module name="TodoComment"/>
-        <module name="UpperEll"/>
+        <!-- ========================================= -->
+        <!-- Misceláneos                              -->
+        <!-- ========================================= -->
+        
+        <module name="ArrayTypeStyle">
+            <message key="array.type.style" value="Usar estilo Java (String[] args) no C (String args[])"/>
+        </module>
+        
+        <!-- 0x1007 - TODOs deben incluir contexto -->
+        <module name="TodoComment">
+            <message key="todo.match" value="[0x1007] TODO encontrado: ''{0}''. Incluir quién, qué y por qué"/>
+        </module>
+        
+        <module name="UpperEll">
+            <message key="upperEll" value="Usar 'L' mayúscula para literales long, no 'l' minúscula"/>
+        </module>
 
         <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->
         <module name="SuppressionXpathFilter">
