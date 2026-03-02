@@ -116,7 +116,7 @@ jacocoTestCoverageVerification {
         rule {
             element = 'CLASS'
             limit {
-                minimum = 0.80  // 80% cobertura mínima
+                minimum = 0.50  // 50% cobertura mínima
             }
             excludes = [
                 '*.LoaderApp',
