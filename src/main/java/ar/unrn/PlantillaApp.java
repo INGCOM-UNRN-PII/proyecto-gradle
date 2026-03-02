@@ -14,6 +14,6 @@ public class PlantillaApp {
      * @param args son los argumentos de invocación.
      */
     public static void main(String[] args) {
-        ;// Completar
+        System.out.println("Completar con el main");
     }
 }
