@@ -228,6 +228,10 @@ Toda clase, método y atributo debe tener un comentario de documentación Javado
 
 Esto incluye los miembros privados, por una cuestión de registrar y entender el razonamiento detrás de cada parte.
 
+**Importante para clases abstractas** (TP7 - Calculadora): La documentación de clases abstractas es crítica. 
+Debe establecer qué se debe hacer y qué NO en los métodos que deben ser implementados por las subclases. 
+No solo describir lo obvio del código.
+
 ## `0x1002` - Todas las excepciones que lancemos deben estar documentadas con `@throws`
 
 Si la misma excepción se lanza en dos contextos diferentes, explicar cada uno de ellos.
@@ -434,6 +438,15 @@ Si hay código repetido en múltiples lugares, extraerlo a un método privado o 
 
 Principio **DRY** (Don't Repeat Yourself).
 
+**Ejemplo importante** (TP7 - Calculadora): Revisar `toString()` en jerarquías de herencia para que
+se resuelva de manera general en la clase base, sin duplicar código en las clases específicas.
+
+**Separación de responsabilidades** (TP7 - Calculadora):
+- `toString()` NO debe calcular, solo mostrar la estructura de la operación
+- `calcular()` realiza el cálculo numérico
+- Llamar a `toString()` es redundante al concatenar (el compilador lo hace automático)
+- Calcular subexpresiones una vez y guardar el resultado evita recalcular operaciones potencialmente costosas
+
 ## `0x2008` - Los métodos get/set no pueden ser usados para la lógica del problema
 
 Los getters/setters deben ser simples accesores. La lógica de negocio va en métodos específicos.
@@ -633,6 +646,8 @@ public boolean equals(Object obj) {  // Override correcto
 }
 ```
 
+**Importante** (TP9 - Agenda): NO comparar usando `hashCode()`. Los valores de `hashCode()` no tienen garantías de ausencia de colisiones.
+
 ## `0x2010` - La implementación de `hashCode` debe emplear la librería
 
 Presente en `Arrays` y `Objects`.
@@ -650,6 +665,50 @@ public int hashCode() {
 @Override
 public int hashCode() {
     return Objects.hash(nombre, edad);
+}
+```
+
+## `0x2011` - No exponer detalles internos mediante getters (TP9 - Agenda)
+
+Las búsquedas que toman valores mediante getters y hacen comparaciones fuera de la clase rompen el encapsulamiento.
+
+**Incorrecto**:
+```java
+// En clase Agenda
+for (Contacto c : contactos) {
+    if (c.getNombre().equals(nombre)) {  // Rompe encapsulamiento
+        return c;
+    }
+}
+```
+
+**Correcto**:
+```java
+// En clase Contacto
+public boolean tieneNombre(String nombre) {
+    return this.nombre.equals(nombre);
+}
+
+// En clase Agenda
+for (Contacto c : contactos) {
+    if (c.tieneNombre(nombre)) {
+        return c;
+    }
+}
+```
+
+## `0x2012` - Usar Factory Methods para construcción compleja (TP9 - Agenda)
+
+Si el constructor tiene muchos parámetros o múltiples formas de construcción, considerar usar factory methods.
+
+```java
+public static Contacto crearContactoCompleto(String nombre, String telefono, 
+                                             String email, String direccion) {
+    return new Contacto(nombre, telefono, email, direccion);
+}
+
+public static Contacto crearContactoBasico(String nombre, String telefono) {
+    return new Contacto(nombre, telefono, null, null);
 }
 ```
 
@@ -1010,6 +1069,24 @@ if (arreglo.length == 0) {
 }
 ```
 
+**Ejemplo de validación reutilizable** (TP3 - Arreglos y Excepciones):
+```java
+/**
+ * Verifica que un arreglo no sea null ni esté vacío.
+ * @param arreglo el arreglo a verificar
+ * @throws NullPointerException si el arreglo es null
+ * @throws IllegalArgumentException si el arreglo está vacío
+ */
+private static void validarArreglo(int[] arreglo) {
+    if (arreglo == null) {
+        throw new NullPointerException("El arreglo no puede ser null");
+    }
+    if (arreglo.length == 0) {
+        throw new IllegalArgumentException("El arreglo no puede estar vacío");
+    }
+}
+```
+
 ## `0x3007` - 'Largo cero' y `null` son dos situaciones bastante diferentes
 
 Que requieren de excepciones distintas para que su tratamiento pueda ser más específico.
@@ -1253,6 +1330,43 @@ double precio = 0.1 + 0.2;  // 0.30000000000000004
 BigDecimal precio = new BigDecimal("0.1").add(new BigDecimal("0.2"));  // 0.3 exacto
 ```
 
+## `0xE006` - Usar comparaciones de strings para determinar comportamiento (TP7 - Calculadora)
+
+Usar `operador.equals("-")` para determinar comportamiento es equivalente a verificar el tipo con `instanceof`, lo cual viola el principio Open/Closed. Usar polimorfismo.
+
+**Incorrecto**:
+```java
+public String toString() {
+    if (operador.equals("+")) {
+        return "suma";
+    } else if (operador.equals("-")) {
+        return "resta";
+    }
+    // ...
+}
+```
+
+**Correcto**:
+```java
+// Cada operación tiene su propia implementación polimórfica
+@Override
+public String toString() {
+    return "suma";  // En clase Suma
+}
+```
+
+## `0xE007` - Separadores de línea multiplataforma (TP7 - Calculadora)
+
+Al procesar archivos, usar `System.lineSeparator()` para que pueda procesar archivos creados en cualquier plataforma.
+
+```java
+if (contenidoArchivo.charAt(i) == System.lineSeparator().charAt(0)) {
+    // ...
+}
+```
+
+Ver [System.lineSeparator()](https://docs.oracle.com/javase/21/docs/api/java.base/java/lang/System.html#lineSeparator())
+
 ---
 
 # Serie 0x6 - Restricciones de Programación Funcional
@@ -1471,149 +1585,6 @@ String resultado = sb.toString();
 
 ---
 
-# Apuntes específicos de las prácticas
-
-## TP3 - Arreglos y Excepciones
-
-El código de validación de arreglos se repite en múltiples funciones y debería estar
-en un método privado separado.
-
-Ejemplo:
-
-```java
-/**
- * Verifica que un arreglo no sea null ni esté vacío.
- * @param arreglo el arreglo a verificar
- * @throws NullPointerException si el arreglo es null
- * @throws IllegalArgumentException si el arreglo está vacío
- */
-private static void validarArreglo(int[] arreglo) {
-    if (arreglo == null) {
-        throw new NullPointerException("El arreglo no puede ser null");
-    }
-    if (arreglo.length == 0) {
-        throw new IllegalArgumentException("El arreglo no puede estar vacío");
-    }
-}
-```
-
-Reutilización:
-
-```java
-public static int obtieneEntero(String mensaje, int intentos) 
-        throws NoMasIntentosException {
-    return obtieneEntero(mensaje, intentos, Integer.MIN_VALUE, Integer.MAX_VALUE);
-}
-```
-
-**Importante**: Ser específico sobre las situaciones que pueden provocar excepciones.
-Lo que se describe debe aplicar específicamente a este método, no ser genérico como
-"función que trabaje con archivos".
-
-## TP7 - CALCULADORA (Patrón Template Method)
-
-**Importante**: Usar `operador.equals("-")` para determinar comportamiento es equivalente
-a verificar el tipo con `instanceof`, lo cual viola el principio Open/Closed.
-
-La solución implementada NO debe usar comparaciones de strings en `toString`.
-Usar polimorfismo.
-
-**Documentación de clase abstracta**: Es la MÁS importante del ejercicio.
-Debe establecer qué se debe hacer y qué NO en los métodos que deben ser implementados
-por las subclases. No solo describir lo obvio del código.
-
-**`toString()` vs `calcular()`**:
-- `toString()` NO debe calcular, solo mostrar la estructura de la operación
-- `calcular()` realiza el cálculo numérico
-- Llamar a `toString()` es redundante al concatenar (el compilador lo hace automático)
-
-Revisar `toString()` en `OperacionMultiple` y `OperacionUnaria` para que se resuelva
-de manera general, sin duplicar código en las operaciones específicas.
-
-**Nota sobre cálculo de subexpresiones**: Es un detalle menor, pero en expresiones complejas
-nunca sabes qué implica calcular una subexpresión (puede ser costoso en tiempo).
-Por lo tanto, calcular una vez y guardar el resultado no está de más.
-
-**Separadores de línea**: Al procesar archivos, usar:
-
-```java
-if (contenidoArchivo.charAt(i) == System.lineSeparator().charAt(0)) {
-    // ...
-}
-```
-
-Para que pueda procesar archivos creados en cualquier plataforma.
-Ver [System.lineSeparator()](https://docs.oracle.com/javase/21/docs/api/java.base/java/lang/System.html#lineSeparator())
-
-## TP9 - Agenda (Encapsulamiento)
-
-**Implementación de `equals`**: NO comparar con `hashCode()`.
-Los valores de `hashCode()` no tienen garantías de colisiones falsas.
-
-```java
-// INCORRECTO
-public boolean equals(Object obj) {
-    return this.hashCode() == obj.hashCode();  // NUNCA hacer esto
-}
-
-// CORRECTO
-public boolean equals(Object obj) {
-    if (!(obj instanceof Contacto otro)) {
-        return false;
-    }
-    return this.nombre.equals(otro.nombre) && 
-           this.telefono.equals(otro.telefono);
-}
-```
-
-**Búsquedas en Agenda**: Las búsquedas que toman valores de `Contacto` y hacen
-comparaciones fuera de la clase `Contacto` rompen el encapsulamiento.
-
-**Incorrecto**:
-```java
-// En clase Agenda
-for (Contacto c : contactos) {
-    if (c.getNombre().equals(nombre)) {  // Rompe encapsulamiento
-        return c;
-    }
-}
-```
-
-**Correcto**:
-```java
-// En clase Contacto
-public boolean tieneNombre(String nombre) {
-    return this.nombre.equals(nombre);
-}
-
-// En clase Agenda
-for (Contacto c : contactos) {
-    if (c.tieneNombre(nombre)) {
-        return c;
-    }
-}
-```
-
-**Comparación de referencias vs contenido**: Asegurarse de usar `.equals()` y no `==`
-para comparar objetos.
-
-**Factory Methods**: Si el constructor tiene muchos parámetros o múltiples formas
-de construcción, considerar usar factory methods para simplificar y hacer más clara
-la creación de objetos.
-
-```java
-public static Contacto crearContactoCompleto(String nombre, String telefono, 
-                                             String email, String direccion) {
-    return new Contacto(nombre, telefono, email, direccion);
-}
-
-public static Contacto crearContactoBasico(String nombre, String telefono) {
-    return new Contacto(nombre, telefono, null, null);
-}
-```
-
----
-
 ## Resumen de Prioridades
 
 ### 🔴 Críticas (deben cumplirse siempre)
@@ -1644,5 +1615,6 @@ public static Contacto crearContactoBasico(String nombre, String telefono) {
 
 ---
 
-**Última actualización**: 2026-02-18
-**Versión**: 3.0 - Reorganizada con categorización hexadecimal y restricciones de programación funcional
+**Última actualización**: 2026-03-02  
+**Versión**: 4.0 - Reglas integradas con referencias a TPs originales (TP3, TP7, TP9)  
+**Nota**: Las prácticas específicas de cada TP están integradas en las categorías generales con referencias al trabajo práctico de origen.
