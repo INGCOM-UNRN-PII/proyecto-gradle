@@ -319,8 +319,90 @@ pitest {
 }
 
 // ============================================================================
+// VERIFICACIÓN DE CALIDAD DE TESTS (FASE 2)
+// ============================================================================
+// Reglas: 0x4004 - Tests sin lógica condicional
+// ============================================================================
+
+tasks.register('verifyTestQuality') {
+    description = 'Verifica que los tests no contengan lógica condicional (regla 0x4004)'
+    group = 'verification'
+    
+    mustRunAfter test
+    
+    doLast {
+        def testFiles = fileTree('src/test/java') {
+            include '**/*Test.java'
+        }
+        
+        def violations = []
+        
+        testFiles.each { file ->
+            def content = file.text
+            def lineNumber = 0
+            
+            content.eachLine { line, num ->
+                lineNumber = num
+                
+                // Detectar estructuras condicionales
+                if (line =~ /\s+if\s*\(/ || 
+                    line =~ /\s+for\s*\(/ || 
+                    line =~ /\s+while\s*\(/ || 
+                    line =~ /\s+switch\s*\(/) {
+                    
+                    // Excluir líneas en comentarios
+                    if (!(line.trim().startsWith('//'))) {
+                        violations << "[0x4004] ${file.name}:${lineNumber} - " +
+                                     "Test con lógica condicional: ${line.trim()}"
+                    }
+                }
+            }
+        }
+        
+        if (!violations.isEmpty()) {
+            println "\n═══════════════════════════════════════════════════════════════"
+            println "Verificación de Calidad de Tests - Violaciones encontradas"
+            println "═══════════════════════════════════════════════════════════════\n"
+            
+            violations.each { v ->
+                println "❌ ${v}"
+            }
+            
+            println "\n═══════════════════════════════════════════════════════════════"
+            println "Regla 0x4004: Los tests no deben contener lógica condicional"
+            println "Los tests deben ser simples y directos sin if/for/while/switch"
+            println "═══════════════════════════════════════════════════════════════\n"
+            
+            throw new GradleException(
+                "${violations.size()} violation(s) found in test quality check")
+        } else {
+            println "\n✅ Verificación de calidad de tests: PASSED\n"
+        }
+    }
+}
+
+// ============================================================================
 // DREDD - GENERACIÓN DE REPORTE CONSOLIDADO
 // ============================================================================
+
+tasks.register('analyzeAll') {
+    description = 'Ejecuta todos los análisis de código y verificaciones de calidad'
+    group = 'verification'
+    
+    dependsOn 'clean'
+    dependsOn 'test'
+    dependsOn 'jacocoTestReport'
+    dependsOn 'checkstyleMain'
+    dependsOn 'checkstyleTest'
+    dependsOn 'pmdMain'
+    dependsOn 'pmdTest'
+    dependsOn 'spotbugsMain'
+    dependsOn 'verifyTestQuality'
+    
+    // ArchUnit se ejecuta automáticamente con test
+    
+    finalizedBy 'dredd'
+}
 
 tasks.register('dredd') {
     description = 'Genera un reporte consolidado en Markdown con resultados de todas las herramientas de verificación'

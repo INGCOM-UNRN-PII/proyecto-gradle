@@ -4,14 +4,49 @@ Plantilla de proyectos empleando Gradle y configurado con herramientas de verifi
 
 ## Herramientas de Verificación
 
+### Análisis Estático y Estilo
 1. **[Checkstyle](https://checkstyle.sourceforge.io/)** - Verificación de estilo de código
 2. **[PMD](https://pmd.github.io/)** - Análisis estático de código
 3. **[SpotBugs](https://spotbugs.github.io/)** - Detección de bugs
 4. **[Error Prone](https://errorprone.info/)** - Detección de errores en compilación
 5. **[NullAway](https://github.com/uber/NullAway)** - Detección de errores de null
+
+### Testing y Cobertura
 6. **[JaCoCo](https://www.jacoco.org/jacoco/)** - Cobertura de código
 7. **[PIT (Pitest)](https://pitest.org/)** - Mutation testing
-8. **[ArchUnit](https://www.archunit.org/)** - Verificación de arquitectura
+8. **[ArchUnit](https://www.archunit.org/)** - Verificación de arquitectura (tests)
+
+### Herramientas Implementadas
+
+#### ✅ Error Prone
+Detecta errores comunes durante la compilación:
+- `0xE001` - Comparar objetos con `==` en lugar de `equals()`
+- `0xE002` - No cerrar recursos
+- `0xE003` - Modificar colección durante iteración
+- `0xE004` - Ignorar valor de retorno
+- `0x200F` - equals primero de Object
+- `0x2010` - hashCode con librería
+
+#### ✅ NullAway
+Verificación de null-safety en tiempo de compilación:
+- `0x200B` - Evitar retornos null
+- `0x2011` - Constructores validan parámetros
+- `0x3006` - Situaciones diferentes → excepciones diferentes
+- `0x3007` - Largo cero ≠ null
+
+#### ✅ ArchUnit
+Tests que verifican reglas de arquitectura:
+- `0x2001` - Atributos deben ser private
+- `0x2003` - Paquetes deben comenzar con ar.unrn
+- `0x2009` - Atributos estáticos justificados
+- `0x200D` - Clases con única responsabilidad (SRP)
+
+#### ✅ PIT Mutation Testing
+Verifica calidad de tests mediante mutaciones:
+- `0x4001` - Estructura AAA (indirecta)
+- `0x4002` - Una llamada por test (indirecta)
+- `0x4004` - Tests sin lógica condicional (tarea custom)
+- `0x4005` - Tests independientes (indirecta)
 
 ## Reglas de Programación
 
@@ -39,6 +74,12 @@ Las reglas están categorizadas con numeración hexadecimal:
 ```
 
 ### Verificaciones individuales
+
+#### Calidad de Tests
+```bash
+./gradlew verifyTestQuality
+```
+Verifica que los tests no contengan lógica condicional (regla 0x4004)
 
 #### Checkstyle (estilo de código)
 
@@ -94,12 +135,27 @@ Reportes generados en:
 
 - `build/reports/pitest/index.html`
 
+### Análisis Completo
+
+Ejecuta todas las verificaciones y genera reporte consolidado:
+
+```bash
+./gradlew analyzeAll
+```
+
+Este comando ejecuta:
+- Todas las verificaciones de código (Checkstyle, PMD, SpotBugs)
+- Tests unitarios (incluyendo ArchUnit)
+- Cobertura de código (JaCoCo)
+- Verificación de calidad de tests
+- Genera reporte consolidado (Dredd)
+
 ### Reporte Consolidado (Dredd)
 
 Genera un reporte consolidado en Markdown con resultados de todas las herramientas:
 
 ```bash
-./gradlew check dredd
+./gradlew check analyzeAll dredd
 ```
 
 Reporte generado en:
