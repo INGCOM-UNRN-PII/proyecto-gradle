@@ -256,10 +256,12 @@
             <message key="name.invalidPattern" value="[0x0001] Las clases deben ir en CamelloCase (ej: CalculadoraAvanzada)"/>
         </module>
         
-        <!-- 0x0003 - Variables, parámetros en dromedarioCase -->
+        <!-- 0x0005 - Constantes locales (final dentro de métodos) en SNAKE_CASE mayúsculas -->
         <module name="LocalFinalVariableName">
-            <message key="name.invalidPattern" value="[0x0003] Las variables deben ir en dromedarioCase (ej: nombreCompleto)"/>
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+            <message key="name.invalidPattern" value="[0x0005] Las constantes locales (final) deben ir en SNAKE_CASE mayúsculas (ej: MAX_VALUE)"/>
         </module>
+        <!-- 0x0003 - Variables, parámetros en dromedarioCase -->
         <module name="LocalVariableName">
             <message key="name.invalidPattern" value="[0x0003] Las variables deben ir en dromedarioCase (ej: nombreCompleto)"/>
         </module>
