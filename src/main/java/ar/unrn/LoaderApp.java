@@ -32,7 +32,7 @@ public class LoaderApp {
      * @param args son los argumentos de invocación que serán pasados a los
      *             otros main.
      */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         Class[] clases;
         try {
             clases = getClasses(PACKAGE_TO_RUN);
@@ -136,7 +136,7 @@ public class LoaderApp {
         @Serial
         private static final long serialVersionUID = 42L;
         /**
-         * Los fallos internos, provienen exclusivamente de otros por lo
+         * Los fallos internos provienen exclusivamente de otros por lo
          * que se encadenan. Es obligatorio agregar también contexto textual.
          *
          * @param message la descripción de la situación que provoco el problema.
