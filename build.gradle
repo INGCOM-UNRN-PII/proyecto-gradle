@@ -142,7 +142,7 @@ jacocoTestCoverageVerification {
 
 pmd {
     toolVersion = "7.16.0"
-    consoleOutput = true
+    consoleOutput = false
     ignoreFailures = false
     ruleSetFiles = files('config/pmd/programacion2.xml')
     ruleSets = []
@@ -155,6 +155,49 @@ tasks.withType(Pmd).configureEach {
     }
     // Excluir PlantillaApp (es solo una plantilla vacía)
     exclude '**/PlantillaApp.java'
+    
+    ignoreFailures = true
+    
+    doLast {
+        def reportFile = reports.xml.outputLocation.asFile.get()
+        if (reportFile.exists() && reportFile.length() > 0) {
+            def parser = new XmlSlurper()
+            parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            def pmdXml = parser.parse(reportFile)
+            
+            def violations = pmdXml.file.collect { file ->
+                file.violation.collect { violation ->
+                    [
+                        file: file.@name.toString().replace(project.projectDir.absolutePath + '/', ''),
+                        line: violation.@beginline.toString(),
+                        rule: violation.@rule.toString(),
+                        priority: violation.@priority.toString(),
+                        message: violation.text().trim()
+                    ]
+                }
+            }.flatten()
+            
+            if (!violations.isEmpty()) {
+                println "\n═══════════════════════════════════════════════════════════════"
+                println "PMD - Problemas detectados: ${violations.size()}"
+                println "═══════════════════════════════════════════════════════════════\n"
+                
+                violations.each { v ->
+                    println "📍 ${v.file}:${v.line}"
+                    println "   Regla: ${v.rule} [Prioridad: ${v.priority}]"
+                    println "   ${v.message}"
+                    println ""
+                }
+                
+                println "═══════════════════════════════════════════════════════════════"
+                println "Ver reporte completo: ${reports.html.outputLocation.asFile.get()}"
+                println "═══════════════════════════════════════════════════════════════\n"
+                
+                throw new GradleException("${violations.size()} PMD rule violations were found. See the report at: ${reports.html.outputLocation.asFile.get()}")
+            }
+        }
+    }
 }
 
 // ============================================================================
