@@ -13,7 +13,7 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'application'
-    id 'com.github.spotbugs' version '6.0.7'
+    id 'com.github.spotbugs' version '6.4.8'
     id 'jacoco'
     id 'info.solidsoft.pitest' version '1.19.0-rc.3'
     id 'net.ltgt.errorprone' version '3.1.0'
@@ -125,7 +125,7 @@ jacocoTestCoverageVerification {
 // ============================================================================
 
 pmd {
-    toolVersion = "7.0.0"
+    toolVersion = "7.16.0"
     consoleOutput = true
     ignoreFailures = false
     ruleSetFiles = files('config/pmd/programacion2.xml')
@@ -145,7 +145,7 @@ tasks.withType(Pmd) {
 
 
 spotbugs {
-    toolVersion = '4.8.3'
+    toolVersion = '4.9.8'
     ignoreFailures = false
     effort = com.github.spotbugs.snom.Effort.valueOf('MAX')
     reportLevel = com.github.spotbugs.snom.Confidence.valueOf('LOW')
@@ -219,6 +219,9 @@ pitest {
     targetClasses = ['ar.unrn.*']
     targetTests = ['ar.unrn.*Test']
 
+    // JUnit 5 plugin
+    junit5PluginVersion = '1.2.1'
+
     // Performance
     threads = Runtime.runtime.availableProcessors()
 
@@ -233,7 +236,11 @@ pitest {
             'INVERT_NEGS',
             'MATH',
             'NEGATE_CONDITIONALS',
-            'RETURN_VALS',
+            'EMPTY_RETURNS',
+            'FALSE_RETURNS',
+            'TRUE_RETURNS',
+            'NULL_RETURNS',
+            'PRIMITIVE_RETURNS',
             'VOID_METHOD_CALLS'
     ]
 
@@ -246,5 +253,160 @@ pitest {
             'ar.unrn.LoaderApp',
             'ar.unrn.*.*Builder'
     ]
+}
+
+// ============================================================================
+// DREDD - GENERACIÓN DE REPORTE CONSOLIDADO
+// ============================================================================
+
+tasks.register('dredd') {
+    description = 'Genera un reporte consolidado en Markdown con resultados de todas las herramientas de verificación'
+    group = 'verification'
+
+    // Se ejecuta después de todas las tareas de verificación
+    mustRunAfter check, test, checkstyleMain, checkstyleTest, pmdMain, pmdTest, spotbugsMain, spotbugsTest, jacocoTestReport
+
+    doLast {
+        def reportDir = file("${buildDir}/reports")
+        def dreddReport = file("${reportDir}/dredd.md")
+        def projectRoot = projectDir
+
+        // Asegurar que el directorio de reportes existe
+        reportDir.mkdirs()
+
+        def content = new StringBuilder()
+
+        // Header
+        def headerFile = file("${projectRoot}/config/dredd/header.md")
+        if (headerFile.exists()) {
+            content.append(headerFile.text)
+        } else {
+            content.append("# El juez Dredd\n")
+        }
+
+        // Checkstyle código
+        content.append("\n## Checkstyle código\n")
+        def checkstyleXml = file("${buildDir}/reports/checkstyle/main.xml")
+        def checkstyleXsl = file("${projectRoot}/config/stylesheets/checkstyle.xsl")
+        if (checkstyleXml.exists() && checkstyleXsl.exists()) {
+            content.append(transformXml(checkstyleXml, checkstyleXsl, projectRoot))
+        } else {
+            content.append("No se encontró el reporte de Checkstyle.\n")
+        }
+
+        // PMD código
+        content.append("\n## PMD código\n")
+        def pmdXml = file("${buildDir}/reports/pmd/main.xml")
+        def pmdXsl = file("${projectRoot}/config/stylesheets/pmd.xsl")
+        if (pmdXml.exists() && pmdXsl.exists()) {
+            content.append(transformXml(pmdXml, pmdXsl, projectRoot))
+        } else {
+            content.append("No se encontró el reporte de PMD.\n")
+        }
+
+        // SpotBugs
+        content.append("\n## SpotBugs\n")
+        def spotbugsXml = file("${buildDir}/reports/spotbugs/main.xml")
+        if (spotbugsXml.exists() && spotbugsXml.length() > 0) {
+            content.append(parseSpotBugsXml(spotbugsXml, projectRoot))
+        } else {
+            content.append("No se encontraron bugs con SpotBugs. ✓\n")
+        }
+
+        // JaCoCo - Cobertura
+        content.append("\n## Cobertura de código (JaCoCo)\n")
+        def jacocoXml = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+        def jacocoXsl = file("${projectRoot}/config/stylesheets/jacoco.xsl")
+        if (jacocoXml.exists() && jacocoXsl.exists()) {
+            content.append(parseJacocoCoverage(jacocoXml))
+        } else {
+            content.append("No se encontró el reporte de cobertura.\n")
+        }
+
+        // Tests
+        content.append("\n## Conan ejecuta los Tests\n")
+        def testResultsDir = file("${buildDir}/test-results/test")
+        def junitXsl = file("${projectRoot}/config/stylesheets/junit.xsl")
+        if (testResultsDir.exists() && junitXsl.exists()) {
+            testResultsDir.eachFileMatch(~/.*\.xml/) { testXml ->
+                content.append(transformXml(testXml, junitXsl, projectRoot))
+            }
+        } else {
+            content.append("No se encontraron resultados de tests.\n")
+        }
+
+        // Footer
+        def footerFile = file("${projectRoot}/config/dredd/footer.md")
+        if (footerFile.exists()) {
+            content.append(footerFile.text)
+        }
+
+        dreddReport.text = content.toString()
+        println "Reporte Dredd generado en: ${dreddReport}"
+    }
+}
+
+String transformXml(File xmlFile, File xslFile, File projectRoot) {
+    def factory = javax.xml.transform.TransformerFactory.newInstance()
+    def xslSource = new javax.xml.transform.stream.StreamSource(xslFile)
+    def transformer = factory.newTransformer(xslSource)
+
+    def xmlSource = new javax.xml.transform.stream.StreamSource(xmlFile)
+    def writer = new StringWriter()
+    def result = new javax.xml.transform.stream.StreamResult(writer)
+
+    transformer.transform(xmlSource, result)
+
+    // Remover paths absolutos del proyecto
+    return writer.toString().replace(projectRoot.absolutePath + "/", "")
+}
+
+String parseSpotBugsXml(File xmlFile, File projectRoot) {
+    def content = new StringBuilder()
+    def xml = new groovy.xml.XmlSlurper().parse(xmlFile)
+
+    def bugs = xml.BugInstance
+    if (bugs.size() == 0) {
+        content.append("No se encontraron bugs. ✓\n")
+        return content.toString()
+    }
+
+    content.append("| Tipo | Categoría | Clase | Mensaje |\n")
+    content.append("|:----:|:---------:|:-----:|:--------|\n")
+
+    bugs.each { bug ->
+        def type = bug.@type.toString()
+        def category = bug.@category.toString()
+        def className = bug.Class.@classname.toString()
+        def message = bug.LongMessage.text().toString().replace("|", "\\|")
+        content.append("|${type}|${category}|${className}|${message}|\n")
+    }
+
+    return content.toString()
+}
+
+String parseJacocoCoverage(File xmlFile) {
+    def content = new StringBuilder()
+    def parser = new groovy.xml.XmlSlurper()
+    parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+    parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+    def xml = parser.parse(xmlFile)
+
+    // Obtener contadores a nivel de reporte
+    def counters = xml.counter
+    content.append("\n### Resumen de cobertura\n\n")
+    content.append("| Tipo | Cubierto | Perdido | Porcentaje |\n")
+    content.append("|:----:|:--------:|:-------:|:----------:|\n")
+
+    counters.each { counter ->
+        def type = counter.@type.toString()
+        def covered = counter.@covered.toString().toInteger()
+        def missed = counter.@missed.toString().toInteger()
+        def total = covered + missed
+        def percentage = total > 0 ? String.format("%.1f%%", (covered * 100.0 / total)) : "N/A"
+        content.append("|${type}|${covered}|${missed}|${percentage}|\n")
+    }
+
+    return content.toString()
 }
 
