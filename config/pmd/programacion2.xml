@@ -99,6 +99,8 @@
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
             <property name="methodReportLevel" value="10"/>
+            <!-- Excluir métodos main (puntos de entrada) -->
+            <property name="violationSuppressXPath" value="//MethodDeclaration[@Name='main']" />
         </properties>
     </rule>
 
@@ -118,6 +120,8 @@
             <property name="publicMethodCommentRequirement" value="Required" />
             <property name="protectedMethodCommentRequirement" value="Required" />
             <property name="enumCommentRequirement" value="Required" />
+            <!-- Excluir métodos main (puntos de entrada) -->
+            <property name="violationSuppressXPath" value="//MethodDeclaration[@Name='main']" />
         </properties>
     </rule>
     
@@ -146,6 +150,13 @@
     
     <rule ref="category/java/errorprone.xml">
         <exclude name="EmptyCatchBlock" />
+    </rule>
+    
+    <!-- Excluir CloseResource en métodos main (scanner con System.in) -->
+    <rule ref="category/java/errorprone.xml/CloseResource">
+        <properties>
+            <property name="violationSuppressXPath" value="//MethodDeclaration[@Name='main']" />
+        </properties>
     </rule>
     
     <!-- 0x300B - Silenciar excepciones no es gestionarlas -->
