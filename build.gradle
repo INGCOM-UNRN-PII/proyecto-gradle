@@ -4,9 +4,18 @@
 // ============================================================================
 
 
+import com.github.spotbugs.snom.Confidence
+import com.github.spotbugs.snom.Effort
 import com.github.spotbugs.snom.SpotBugsTask
+import groovy.xml.XmlSlurper
+import net.ltgt.gradle.errorprone.CheckSeverity
 
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.stream.StreamSource
 import java.time.Duration
+
+import static net.ltgt.gradle.errorprone.CheckSeverity.ERROR
 
 plugins {
     id 'java'
@@ -139,7 +148,7 @@ pmd {
     ruleSets = []
 }
 
-tasks.withType(Pmd) {
+tasks.withType(Pmd).configureEach {
     reports {
         xml.required.set(true)
         html.required.set(true)
@@ -156,8 +165,8 @@ tasks.withType(Pmd) {
 spotbugs {
     toolVersion = '4.9.8'
     ignoreFailures = false
-    effort = com.github.spotbugs.snom.Effort.valueOf('MAX')
-    reportLevel = com.github.spotbugs.snom.Confidence.valueOf('LOW')
+    effort = Effort.valueOf('MAX')
+    reportLevel = Confidence.valueOf('LOW')
 }
 
 tasks.withType(SpotBugsTask).configureEach {
@@ -177,7 +186,7 @@ checkstyle {
     ignoreFailures = false
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
     reports {
         xml.required.set(true)
         html.required.set(true)
@@ -196,16 +205,16 @@ tasks.withType(JavaCompile).configureEach {
         disableWarningsInGeneratedCode = true
 
         // Checks válidos de Error Prone
-        check("MissingOverride", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("ModifyCollectionInEnhancedForLoop", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("ReturnValueIgnored", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("CheckReturnValue", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("EqualsIncompatibleType", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("EqualsHashCode", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-        check("DeadException", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("MissingOverride", ERROR)
+        check("ModifyCollectionInEnhancedForLoop", ERROR)
+        check("ReturnValueIgnored", ERROR)
+        check("CheckReturnValue", ERROR)
+        check("EqualsIncompatibleType", ERROR)
+        check("EqualsHashCode", ERROR)
+        check("DeadException", ERROR)
 
         // NullAway
-        check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        check("NullAway", ERROR)
         option("NullAway:AnnotatedPackages", "ar.unrn")
         option("NullAway:TreatGeneratedAsUnannotated", "true")
         option("NullAway:CheckOptionalEmptiness", "true")
@@ -278,7 +287,7 @@ tasks.register('dredd') {
     mustRunAfter check, test, checkstyleMain, checkstyleTest, pmdMain, pmdTest, spotbugsMain, spotbugsTest, jacocoTestReport
 
     doLast {
-        def reportDir = file("${buildDir}/reports")
+        def reportDir = file("${layout.buildDirectory.get().asFile}/reports")
         def dreddReport = file("${reportDir}/dredd.md")
         def projectRoot = projectDir
 
@@ -297,7 +306,7 @@ tasks.register('dredd') {
 
         // Checkstyle código
         content.append("\n## Checkstyle código\n")
-        def checkstyleXml = file("${buildDir}/reports/checkstyle/main.xml")
+        def checkstyleXml = file("${layout.buildDirectory.get().asFile}/reports/checkstyle/main.xml")
         def checkstyleXsl = file("${projectRoot}/config/stylesheets/checkstyle.xsl")
         if (checkstyleXml.exists() && checkstyleXsl.exists()) {
             content.append(transformXml(checkstyleXml, checkstyleXsl, projectRoot))
@@ -307,7 +316,7 @@ tasks.register('dredd') {
 
         // PMD código
         content.append("\n## PMD código\n")
-        def pmdXml = file("${buildDir}/reports/pmd/main.xml")
+        def pmdXml = file("${layout.buildDirectory.get().asFile}/reports/pmd/main.xml")
         def pmdXsl = file("${projectRoot}/config/stylesheets/pmd.xsl")
         if (pmdXml.exists() && pmdXsl.exists()) {
             content.append(transformXml(pmdXml, pmdXsl, projectRoot))
@@ -317,7 +326,7 @@ tasks.register('dredd') {
 
         // SpotBugs
         content.append("\n## SpotBugs\n")
-        def spotbugsXml = file("${buildDir}/reports/spotbugs/main.xml")
+        def spotbugsXml = file("${layout.buildDirectory.get().asFile}/reports/spotbugs/main.xml")
         if (spotbugsXml.exists() && spotbugsXml.length() > 0) {
             content.append(parseSpotBugsXml(spotbugsXml, projectRoot))
         } else {
@@ -326,7 +335,7 @@ tasks.register('dredd') {
 
         // JaCoCo - Cobertura
         content.append("\n## Cobertura de código (JaCoCo)\n")
-        def jacocoXml = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+        def jacocoXml = file("${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml")
         def jacocoXsl = file("${projectRoot}/config/stylesheets/jacoco.xsl")
         if (jacocoXml.exists() && jacocoXsl.exists()) {
             content.append(parseJacocoCoverage(jacocoXml))
@@ -336,7 +345,7 @@ tasks.register('dredd') {
 
         // Tests
         content.append("\n## Conan ejecuta los Tests\n")
-        def testResultsDir = file("${buildDir}/test-results/test")
+        def testResultsDir = file("${layout.buildDirectory.get().asFile}/test-results/test")
         def junitXsl = file("${projectRoot}/config/stylesheets/junit.xsl")
         if (testResultsDir.exists() && junitXsl.exists()) {
             testResultsDir.eachFileMatch(~/.*\.xml/) { testXml ->
@@ -357,14 +366,14 @@ tasks.register('dredd') {
     }
 }
 
-String transformXml(File xmlFile, File xslFile, File projectRoot) {
-    def factory = javax.xml.transform.TransformerFactory.newInstance()
-    def xslSource = new javax.xml.transform.stream.StreamSource(xslFile)
+static String transformXml(File xmlFile, File xslFile, File projectRoot) {
+    def factory = TransformerFactory.newInstance()
+    def xslSource = new StreamSource(xslFile)
     def transformer = factory.newTransformer(xslSource)
 
-    def xmlSource = new javax.xml.transform.stream.StreamSource(xmlFile)
+    def xmlSource = new StreamSource(xmlFile)
     def writer = new StringWriter()
-    def result = new javax.xml.transform.stream.StreamResult(writer)
+    def result = new StreamResult(writer)
 
     transformer.transform(xmlSource, result)
 
@@ -372,9 +381,9 @@ String transformXml(File xmlFile, File xslFile, File projectRoot) {
     return writer.toString().replace(projectRoot.absolutePath + "/", "")
 }
 
-String parseSpotBugsXml(File xmlFile, File projectRoot) {
+static String parseSpotBugsXml(File xmlFile, File projectRoot) {
     def content = new StringBuilder()
-    def xml = new groovy.xml.XmlSlurper().parse(xmlFile)
+    def xml = new XmlSlurper().parse(xmlFile)
 
     def bugs = xml.BugInstance
     if (bugs.size() == 0) {
@@ -396,9 +405,9 @@ String parseSpotBugsXml(File xmlFile, File projectRoot) {
     return content.toString()
 }
 
-String parseJacocoCoverage(File xmlFile) {
+static String parseJacocoCoverage(File xmlFile) {
     def content = new StringBuilder()
-    def parser = new groovy.xml.XmlSlurper()
+    def parser = new XmlSlurper()
     parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
     parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
     def xml = parser.parse(xmlFile)
