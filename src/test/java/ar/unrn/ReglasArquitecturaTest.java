@@ -17,7 +17,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 /**
  * Tests de reglas de arquitectura usando ArchUnit.
  * Automatiza reglas de diseño POO y arquitectura.
- * 
  * Reglas implementadas:
  * - 0x2001: Atributos deben ser private
  * - 0x2003: Paquetes deben comenzar con ar.unrn
@@ -35,10 +34,10 @@ public class ReglasArquitecturaTest {
     @BeforeAll
     public static void importarClases() {
         CLASSES = new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
-            .importPackages("ar.unrn");
-        
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+                .importPackages("ar.unrn");
+
         System.out.println("Clases importadas: " + CLASSES.size());
     }
 
@@ -49,13 +48,13 @@ public class ReglasArquitecturaTest {
     @Test
     public void regla0x2001AtributosDebenSerPrivados() {
         ArchRule rule = fields()
-            .that().areDeclaredInClassesThat()
+                .that().areDeclaredInClassesThat()
                 .resideInAPackage("ar.unrn..")
-            .and().areNotStatic()
-            .and().areNotFinal()
-            .should().bePrivate()
-            .allowEmptyShould(true)
-            .because("[0x2001] Los atributos deben ser private (encapsulamiento)");
+                .and().areNotStatic()
+                .and().areNotFinal()
+                .should().bePrivate()
+                .allowEmptyShould(true)
+                .because("[0x2001] Los atributos deben ser private (encapsulamiento)");
 
         rule.check(CLASSES);
     }
@@ -67,9 +66,9 @@ public class ReglasArquitecturaTest {
     @Test
     public void regla0x2003PaquetesDebenEmpezarConArUnrn() {
         ArchRule rule = classes()
-            .should().resideInAPackage("ar.unrn..")
-            .allowEmptyShould(true)
-            .because("[0x2003] Los paquetes deben comenzar con ar.unrn");
+                .should().resideInAPackage("ar.unrn..")
+                .allowEmptyShould(true)
+                .because("[0x2003] Los paquetes deben comenzar con ar.unrn");
 
         rule.check(CLASSES);
     }
@@ -81,32 +80,32 @@ public class ReglasArquitecturaTest {
     @Test
     public void regla0x2009AtributosEstaticosJustificados() {
         ArchRule rule = fields()
-            .that().areStatic()
-            .and().areNotFinal()
-            .should().bePrivate()
-            .andShould().haveName(".*INSTANCE|.*FACTORY")
-            .allowEmptyShould(true)
-            .because("[0x2009] Atributos estáticos no finales "
-                + "deben estar justificados (preferir constantes o singleton)");
+                .that().areStatic()
+                .and().areNotFinal()
+                .should().bePrivate()
+                .andShould().haveName(".*INSTANCE|.*FACTORY")
+                .allowEmptyShould(true)
+                .because("[0x2009] Atributos estáticos no finales "
+                        + "deben estar justificados (preferir constantes o singleton)");
 
         rule.check(CLASSES);
     }
 
     /**
      * Regla 0x200D: Clases deben tener única responsabilidad (SRP).
-     * Heurística: clases con más de 20 miembros probablemente 
+     * Heurística: clases con más de 20 miembros probablemente
      * violan el principio de responsabilidad única.
      */
     @Test
     public void regla0x200DUnaResponsabilidadPorClase() {
         ArchRule rule = classes()
-            .that().resideInAPackage("ar.unrn..")
-            .and().areNotInterfaces()
-            .and().haveSimpleNameNotEndingWith("App")
-            .should(tenerComoMaximo(20))
-            .allowEmptyShould(true)
-            .because("[0x200D] Clases deben tener única responsabilidad "
-                + "(SRP) - máximo 20 miembros");
+                .that().resideInAPackage("ar.unrn..")
+                .and().areNotInterfaces()
+                .and().haveSimpleNameNotEndingWith("App")
+                .should(tenerComoMaximo(20))
+                .allowEmptyShould(true)
+                .because("[0x200D] Clases deben tener única responsabilidad "
+                        + "(SRP) - máximo 20 miembros");
 
         rule.check(CLASSES);
     }
@@ -119,25 +118,25 @@ public class ReglasArquitecturaTest {
     @Test
     public void regla0x0006ANomenclaturaInterfaces() {
         ArchRule rule = classes()
-            .that().areInterfaces()
-            .and().resideInAPackage("ar.unrn..")
-            .should(tenerNomenclaturaCorrecto())
-            .allowEmptyShould(true)
-            .because("[0x0006A] Interfaces deben terminar en -able "
-                + "(comportamiento instancia) o -or/-er (funcional)");
+                .that().areInterfaces()
+                .and().resideInAPackage("ar.unrn..")
+                .should(tenerNomenclaturaCorrecto())
+                .allowEmptyShould(true)
+                .because("[0x0006A] Interfaces deben terminar en -able "
+                        + "(comportamiento instancia) o -or/-er (funcional)");
 
         rule.check(CLASSES);
     }
 
     private static ArchCondition<JavaClass> tenerComoMaximo(int maxMembers) {
-        return new ArchCondition<JavaClass>("tener como máximo " + maxMembers + " miembros") {
+        return new ArchCondition<>("tener como máximo " + maxMembers + " miembros") {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
                 int totalMembers = javaClass.getAllMembers().size();
                 if (totalMembers > maxMembers) {
                     String message = String.format(
-                        "Clase %s tiene %d miembros (máximo permitido: %d)",
-                        javaClass.getName(), totalMembers, maxMembers);
+                            "Clase %s tiene %d miembros (máximo permitido: %d)",
+                            javaClass.getName(), totalMembers, maxMembers);
                     events.add(SimpleConditionEvent.violated(javaClass, message));
                 }
             }
@@ -145,23 +144,23 @@ public class ReglasArquitecturaTest {
     }
 
     private static ArchCondition<JavaClass> tenerNomenclaturaCorrecto() {
-        return new ArchCondition<JavaClass>(
-            "tener nomenclatura correcta (-able, -or, -er)") {
+        return new ArchCondition<>(
+                "tener nomenclatura correcta (-able, -or, -er)") {
             @Override
             public void check(JavaClass interfaz, ConditionEvents events) {
                 String nombre = interfaz.getSimpleName();
-                
+
                 // Verificar si termina en -able, -or, -er
                 boolean terminaEnAble = nombre.endsWith("able");
                 boolean terminaEnOr = nombre.endsWith("or");
                 boolean terminaEnEr = nombre.endsWith("er");
-                
+
                 if (!terminaEnAble && !terminaEnOr && !terminaEnEr) {
                     String message = String.format(
-                        "Interfaz %s no sigue convención de nomenclatura. "
-                        + "Debe terminar en -able (comportamiento instancia) "
-                        + "o -or/-er (comportamiento funcional)",
-                        nombre);
+                            "Interfaz %s no sigue convención de nomenclatura. "
+                                    + "Debe terminar en -able (comportamiento instancia) "
+                                    + "o -or/-er (comportamiento funcional)",
+                            nombre);
                     events.add(SimpleConditionEvent.violated(interfaz, message));
                 }
             }
