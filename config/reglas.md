@@ -58,6 +58,99 @@ Los identificadores deben ser:
 **Correcto**: `calculadora`, `numero`, `datos`, `temporal`  
 **Aceptable**: `i`, `j`, `k` (en bucles), `x`, `y` (coordenadas)
 
+## `0x0006A` - Nomenclatura de interfaces según su propósito
+
+Las interfaces deben seguir convenciones según su tipo de comportamiento:
+
+### Interfaces con sufijo `-able` (comportamiento exportado)
+
+Usar sufijo `-able` para interfaces que describen **capacidades o comportamientos** que las clases 
+exponen públicamente y que dependen del estado de la instancia (`this`).
+
+**Ejemplos correctos**:
+```java
+public interface Comparable<T> {
+    int compararCon(T otro);  // Depende del estado de this
+}
+
+public interface Serializable {
+    byte[] serializar();  // Serializa el estado actual
+}
+
+public interface Validable {
+    boolean esValido();  // Valida el estado actual
+}
+
+public interface Cloneable {
+    Object clonar();  // Clona el estado actual
+}
+```
+
+### Interfaces con sufijo `-or`/`-er` (comportamiento funcional)
+
+Usar sufijo `-or` o `-er` para interfaces que describen **operaciones funcionales** que:
+- Se implementan de forma estática o con estado inmutable
+- No dependen directamente del estado de `this`
+- Representan estrategias, funciones o transformaciones
+- Típicamente se implementan en clases internas o anónimas
+
+**Ejemplos correctos**:
+```java
+public interface Comparador<T> {
+    int compare(T o1, T o2);  // No usa this, compara dos objetos externos
+}
+
+public interface Validador<T> {
+    boolean validate(T objeto);  // Validación externa sin estado
+}
+
+public interface Calculador {
+    double calculate(double x, double y);  // Operación sin estado
+}
+
+public interface Conversor<F, T> {
+    T convert(F from);  // Transformación sin estado propio
+}
+
+public interface Procesador<T> {
+    T process(T input);  // Procesamiento funcional
+}
+```
+
+### Ejemplos de uso correcto
+
+```java
+// -able: Comportamiento que depende del estado del objeto
+public class Persona implements Comparable<Persona> {
+    private String nombre;
+    private int edad;
+    
+    @Override
+    public int compararCon(Persona otra) {
+        return this.edad - otra.edad;  // Usa this.edad
+    }
+}
+
+// -or: Comportamiento funcional sin depender de this
+public class OrdenarPersonas {
+    private static class ComparadorPorNombre implements Comparator<Persona> {
+        @Override
+        public int compare(Persona p1, Persona p2) {
+            return p1.getNombre().compareTo(p2.getNombre());  // No usa this
+        }
+    }
+}
+```
+
+### Resumen de criterios
+
+| Sufijo | Uso | Características | Ejemplo |
+|--------|-----|-----------------|---------|
+| `-able` | Comportamiento de instancia | Depende de `this`, métodos de instancia | `Comparable`, `Serializable` |
+| `-or`/`-er` | Comportamiento funcional | Sin estado o estado inmutable, operaciones | `Comparator`, `Validator` |
+
+**Nota**: Esta distinción ayuda a entender la intención del diseño y cómo se usará la interfaz.
+
 ## `0x0007` - Los identificadores booleanos deben usar prefijos interrogativos
 
 Los nombres de variables y métodos booleanos deben usar prefijos que indiquen una pregunta:

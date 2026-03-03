@@ -2,51 +2,26 @@
 
 Plantilla de proyectos empleando Gradle y configurado con herramientas de verificación de calidad de código.
 
-## Herramientas de Verificación
+Las [reglas](config/reglas.md) están en revisión continua y las podemos conversar
+en [Discussions](https://github.com/orgs/INGCOM-UNRN-PII/discussions).
 
-### Análisis Estático y Estilo
-1. **[Checkstyle](https://checkstyle.sourceforge.io/)** - Verificación de estilo de código
-2. **[PMD](https://pmd.github.io/)** - Análisis estático de código
-3. **[SpotBugs](https://spotbugs.github.io/)** - Detección de bugs
-4. **[Error Prone](https://errorprone.info/)** - Detección de errores en compilación
-5. **[NullAway](https://github.com/uber/NullAway)** - Detección de errores de null
+## Comando de verificación completo
 
-### Testing y Cobertura
-6. **[JaCoCo](https://www.jacoco.org/jacoco/)** - Cobertura de código
-7. **[PIT (Pitest)](https://pitest.org/)** - Mutation testing
-8. **[ArchUnit](https://www.archunit.org/)** - Verificación de arquitectura (tests)
+Ejecuta todas las verificaciones y genera reporte consolidado:
 
-### Herramientas Implementadas
+```bash
+./gradlew analyzeAll
+```
 
-#### ✅ Error Prone
-Detecta errores comunes durante la compilación:
-- `0xE001` - Comparar objetos con `==` en lugar de `equals()`
-- `0xE002` - No cerrar recursos
-- `0xE003` - Modificar colección durante iteración
-- `0xE004` - Ignorar valor de retorno
-- `0x200F` - equals primero de Object
-- `0x2010` - hashCode con librería
+Este comando ejecuta en orden:
 
-#### ✅ NullAway
-Verificación de null-safety en tiempo de compilación:
-- `0x200B` - Evitar retornos null
-- `0x2011` - Constructores validan parámetros
-- `0x3006` - Situaciones diferentes → excepciones diferentes
-- `0x3007` - Largo cero ≠ null
-
-#### ✅ ArchUnit
-Tests que verifican reglas de arquitectura:
-- `0x2001` - Atributos deben ser private
-- `0x2003` - Paquetes deben comenzar con ar.unrn
-- `0x2009` - Atributos estáticos justificados
-- `0x200D` - Clases con única responsabilidad (SRP)
-
-#### ✅ PIT Mutation Testing
-Verifica calidad de tests mediante mutaciones:
-- `0x4001` - Estructura AAA (indirecta)
-- `0x4002` - Una llamada por test (indirecta)
-- `0x4004` - Tests sin lógica condicional (tarea custom)
-- `0x4005` - Tests independientes (indirecta)
+1. Limpieza del proyecto
+2. **Compilación** (Error Prone + NullAway automático)
+3. **Tests unitarios** (incluyendo ArchUnit para arquitectura)
+4. **Cobertura de código** (JaCoCo)
+5. **Análisis estático** (Checkstyle, PMD, SpotBugs)
+6. **Verificación calidad de tests** (sin lógica condicional)
+7. **Reporte consolidado** (Informe Dredd)
 
 ## Reglas de Programación
 
@@ -65,23 +40,11 @@ Las reglas están categorizadas con numeración hexadecimal:
 - `0x6xxx`: Restricciones de programación funcional
 - `0xExxx`: Errores comunes (Error-Prone)
 
-## Comandos de Verificación
+### Reglas integradas
 
-### Ejecutar todas las verificaciones
+#### [Checkstyle](https://checkstyle.sourceforge.io/)
 
-```bash
-./gradlew clean build
-```
-
-### Verificaciones individuales
-
-#### Calidad de Tests
-```bash
-./gradlew verifyTestQuality
-```
-Verifica que los tests no contengan lógica condicional (regla 0x4004)
-
-#### Checkstyle (estilo de código)
+Verificación de estilo de código
 
 ```bash
 ./gradlew checkstyleMain checkstyleTest
@@ -92,7 +55,9 @@ Reportes generados en:
 - `build/reports/checkstyle/main.html`
 - `build/reports/checkstyle/test.html`
 
-#### PMD (análisis estático)
+#### [PMD](https://pmd.github.io/)
+
+Análisis estático de código
 
 ```bash
 ./gradlew pmdMain pmdTest
@@ -103,7 +68,9 @@ Reportes generados en:
 - `build/reports/pmd/main.html`
 - `build/reports/pmd/test.html`
 
-#### SpotBugs (detección de bugs)
+#### [SpotBugs](https://spotbugs.github.io/)
+
+Detección de bugs
 
 ```bash
 ./gradlew spotbugsMain spotbugsTest
@@ -114,7 +81,44 @@ Reportes generados en:
 - `build/reports/spotbugs/main.html`
 - `build/reports/spotbugs/test.html`
 
-#### Tests con cobertura (JaCoCo)
+#### [Error Prone](https://errorprone.info/)
+
+Detecta errores comunes durante la compilación:
+
+- `0xE001` - Comparar objetos con `==` en lugar de `equals()`
+- `0xE002` - No cerrar recursos
+- `0xE003` - Modificar colección durante iteración
+- `0xE004` - Ignorar valor de retorno
+- `0x200F` - equals primero de Object
+- `0x2010` - hashCode con librería
+
+#### [NullAway](https://github.com/uber/NullAway)
+
+Verificación de errores provocables por `null` en tiempo de compilación:
+
+- `0x200B` - Evitar retornos null
+- `0x2011` - Constructores validan parámetros
+- `0x3006` - Situaciones diferentes → excepciones diferentes
+- `0x3007` - Largo cero ≠ null
+
+#### [ArchUnit](https://www.archunit.org/)
+
+Tests que verifican reglas de arquitectura:
+
+- `0x2001` - Atributos deben ser private
+- `0x2003` - Paquetes deben comenzar con ar.unrn
+- `0x2009` - Atributos estáticos justificados
+- `0x200D` - Clases con única responsabilidad (SRP)
+
+```bash
+./gradlew test --tests ReglasArquitecturaTest
+```
+
+### Analisis de tests
+
+#### [JaCoCo](https://www.jacoco.org/jacoco/)
+
+Cobertura de las pruebas
 
 ```bash
 ./gradlew test jacocoTestReport
@@ -125,7 +129,17 @@ Reportes generados en:
 - `build/reports/tests/test/index.html` - Resultados de tests
 - `build/reports/jacoco/test/html/index.html` - Cobertura de código
 
-#### Mutation Testing (PIT)
+#### [PIT (Pitest)](https://pitest.org/)
+
+Verifica calidad de tests mediante mutaciones, **no se ejecuta automáticamente** por tiempo de ejecución.
+Útil para validar calidad de tests antes de entregas
+
+- `0x4001` - Estructura AAA (indirecta)
+- `0x4002` - Una llamada por test (indirecta)
+- `0x4004` - Tests sin lógica condicional (tarea custom)
+- `0x4005` - Tests independientes (indirecta)
+
+Es necesario ejecutarlo explícitamente con:
 
 ```bash
 ./gradlew pitest
@@ -135,74 +149,39 @@ Reportes generados en:
 
 - `build/reports/pitest/index.html`
 
-### Análisis Completo
-
-Ejecuta todas las verificaciones y genera reporte consolidado:
-
-```bash
-./gradlew analyzeAll
-```
-
-Este comando ejecuta:
-- Todas las verificaciones de código (Checkstyle, PMD, SpotBugs)
-- Tests unitarios (incluyendo ArchUnit)
-- Cobertura de código (JaCoCo)
-- Verificación de calidad de tests
-- Genera reporte consolidado (Dredd)
-
-### Reporte Consolidado (Dredd)
+## Reporte Consolidado (Dredd)
 
 Genera un reporte consolidado en Markdown con resultados de todas las herramientas:
 
 ```bash
-./gradlew check analyzeAll dredd
+./gradlew check dredd
 ```
 
 Reporte generado en:
 
 - `build/reports/dredd.md`
 
-## Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 proyecto-gradle/
 ├── src/
-│   ├── main/java/ar/unrn/          # Código fuente
-│   └── test/java/ar/unrn/          # Tests
+│   ├── main/java/ar/unrn/                  # Código fuente
+│   │   ├── LoaderApp.java                  # Cargador de aplicaciones
+│   │   └── PlantillaApp.java               # Plantilla de aplicación de consola
+│   └── test/java/ar/unrn/                  # Tests
+│       ├── PlantillaAppTest.java           # Plantilla de tests de aplicaciones 
+│       └── ReglasArquitecturaTest.java     # Tests ArchUnit (parte de las reglas de verificación)
 ├── config/
-│   ├── checkstyle/                 # Configuración Checkstyle
-│   ├── pmd/                        # Configuración PMD
-│   ├── stylesheets/                # XSL para reportes
-│   ├── dredd/                      # Plantillas para reporte consolidado
-│   └── reglas.md                   # Documentación de reglas
-├── build.gradle                    # Configuración del proyecto
-└── README.md                       # Este archivo
+│   ├── checkstyle/                         # Configuración Checkstyle
+│   │   ├── checkstyle.xml
+│   │   └── suppressions.xml
+│   ├── pmd/                                # Configuración PMD
+│   │   └── programacion2.xml
+│   ├── stylesheets/                        # XSL para reportes
+│   ├── dredd/                              # Plantillas para reporte consolidado
+│   └── reglas.md                           # Documentación básica de las reglas
+├── build.gradle                            # Configuración del proyecto
+├── settings.gradle                         # La configuración del proyecto
+└── README.md                               # Este archivo
 ```
-
-## Ejecución del Proyecto
-
-### Compilar
-
-```bash
-./gradlew build
-```
-
-### Ejecutar aplicación principal
-
-```bash
-./gradlew run
-```
-
-### Limpiar build
-
-```bash
-./gradlew clean
-```
-
-## Notas
-
-- Las reglas están en revisión continua para ajustarse a las necesidades de la cátedra (podemos conversarlas
-  en [Discussions](https://github.com/orgs/INGCOM-UNRN-PII/discussions)
-- Error Prone y NullAway se ejecutan automáticamente durante la compilación
-- El proyecto requiere Java 25 o superior
-- Se recomienda ejecutar `./gradlew clean build` antes de cada entrega 
