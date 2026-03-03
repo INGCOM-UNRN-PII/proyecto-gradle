@@ -44,7 +44,15 @@ Las reglas están categorizadas con numeración hexadecimal:
 
 #### [Checkstyle](https://checkstyle.sourceforge.io/)
 
-Verificación de estilo de código
+Verificación de estilo de código (~25 reglas)
+
+**Reglas principales verificadas**:
+
+- **Nomenclatura**: `0x0001` (clases CamelloCase), `0x0003` (variables dromedarioCase), `0x0004` (métodos
+  dromedarioCase), `0x0005` (constantes SNAKE_CASE)
+- **Formato**: `0x0009` (espacios en operadores), `0x000A` (no apilar líneas), `0x000B` (llaves en bloques)
+- **Documentación**: `0x1000` (formato Javadoc), `0x1001` (documentar clases/métodos/atributos)
+- **Diseño**: `0x200A` (métodos máx 30 líneas), `0x2001` (atributos private), `0x2011` (máx 5 parámetros)
 
 ```bash
 ./gradlew checkstyleMain checkstyleTest
@@ -55,9 +63,18 @@ Reportes generados en:
 - `build/reports/checkstyle/main.html`
 - `build/reports/checkstyle/test.html`
 
+📖 **Detalle completo**: [`config/reglas.md`](config/reglas.md) secciones 0x0, 0x1, 0x2
+
 #### [PMD](https://pmd.github.io/)
 
-Análisis estático de código
+Análisis estático de código (~15 reglas)
+
+**Reglas principales verificadas**:
+
+- **Nomenclatura**: `0x0003` (variables locales), `0x0005` (constantes)
+- **Diseño**: `0x200A` (métodos cortos), `0x2007` (sin código duplicado), `0x200C` (getters/setters justificados)
+- **Complejidad**: `0x2011` (parámetros), `0x200D` (responsabilidad única)
+- **Buenas prácticas**: `0xA012` (sin números mágicos), `0x5006` (bucles con terminación clara)
 
 ```bash
 ./gradlew pmdMain pmdTest
@@ -68,9 +85,18 @@ Reportes generados en:
 - `build/reports/pmd/main.html`
 - `build/reports/pmd/test.html`
 
+📖 **Detalle completo**: [`config/reglas.md`](config/reglas.md) secciones 0x0, 0x2, 0x5
+
 #### [SpotBugs](https://spotbugs.github.io/)
 
-Detección de bugs
+Detección de bugs (~5 reglas)
+
+**Categorías verificadas**:
+
+- Problemas de concurrencia
+- Comparaciones incorrectas (relacionado con `0xE001`)
+- Uso incorrecto de APIs
+- Errores de lógica comunes
 
 ```bash
 ./gradlew spotbugsMain spotbugsTest
@@ -83,42 +109,67 @@ Reportes generados en:
 
 #### [Error Prone](https://errorprone.info/)
 
+**Se ejecuta automáticamente durante la compilación** (6 reglas)
+
 Detecta errores comunes durante la compilación:
 
-- `0xE001` - Comparar objetos con `==` en lugar de `equals()`
-- `0xE002` - No cerrar recursos
-- `0xE003` - Modificar colección durante iteración
-- `0xE004` - Ignorar valor de retorno
-- `0x200F` - equals primero de Object
-- `0x2010` - hashCode con librería
+- `0xE001` - Comparar objetos con `==` en lugar de `equals()` → check `StringEquality`
+- `0xE002` - No cerrar recursos → check `MissingOverride`
+- `0xE003` - Modificar colección durante iteración → check `ModifyCollectionInEnhancedForLoop`
+- `0xE004` - Ignorar valor de retorno → checks `ReturnValueIgnored`, `CheckReturnValue`
+- `0x200F` - equals primero de Object → check `EqualsIncompatibleType`
+- `0x2010` - hashCode con librería → check `EqualsHashCode`
+
+```bash
+# Se ejecuta automáticamente con:
+./gradlew compileJava
+```
+
+📖 **Detalle completo**: [`config/reglas.md`](config/reglas.md) sección 0xE (Errores comunes)
 
 #### [NullAway](https://github.com/uber/NullAway)
 
+**Se ejecuta automáticamente durante la compilación** (4 reglas)
+
 Verificación de errores provocables por `null` en tiempo de compilación:
 
-- `0x200B` - Evitar retornos null
-- `0x2011` - Constructores validan parámetros
+- `0x200B` - Evitar retornos null (usar @Nullable si es necesario)
+- `0x2011` - Constructores validan parámetros (null checks)
 - `0x3006` - Situaciones diferentes → excepciones diferentes
 - `0x3007` - Largo cero ≠ null
 
+```bash
+# Se ejecuta automáticamente con:
+./gradlew compileJava
+```
+
+📖 **Detalle completo**: [`config/reglas.md`](config/reglas.md) secciones 0x2 (Diseño POO), 0x3 (Excepciones)
+
 #### [ArchUnit](https://www.archunit.org/)
 
-Tests que verifican reglas de arquitectura:
+**Se ejecuta automáticamente con los tests** (5 reglas)
 
-- `0x2001` - Atributos deben ser private
+Tests que verifican reglas de arquitectura POO:
+
+- `0x2001` - Atributos deben ser private (encapsulamiento)
 - `0x2003` - Paquetes deben comenzar con ar.unrn
-- `0x2009` - Atributos estáticos justificados
-- `0x200D` - Clases con única responsabilidad (SRP)
+- `0x2009` - Atributos estáticos justificados (solo constantes)
+- `0x200D` - Clases con única responsabilidad (SRP, máx 20 miembros)
+- `0x0006A` - Nomenclatura de interfaces (-able para instancia, -or/-er para funcional)
 
 ```bash
 ./gradlew test --tests ReglasArquitecturaTest
 ```
+
+📖 **Detalle completo**: [`config/reglas.md`](config/reglas.md) secciones 0x0 (Nomenclatura), 0x2 (Diseño POO)
 
 ### Analisis de tests
 
 #### [JaCoCo](https://www.jacoco.org/jacoco/)
 
 Cobertura de las pruebas
+
+Genera reportes de cobertura de líneas, ramas, métodos y clases. Ayuda a identificar código no testeado.
 
 ```bash
 ./gradlew test jacocoTestReport
@@ -129,25 +180,36 @@ Reportes generados en:
 - `build/reports/tests/test/index.html` - Resultados de tests
 - `build/reports/jacoco/test/html/index.html` - Cobertura de código
 
+**Configuración**: Cobertura mínima 50%, excluye clases *App y métodos main
+
 #### [PIT (Pitest)](https://pitest.org/)
 
-Verifica calidad de tests mediante mutaciones, **no se ejecuta automáticamente** por tiempo de ejecución.
-Útil para validar calidad de tests antes de entregas
+**No se ejecuta automáticamente** (4 reglas indirectas)
 
-- `0x4001` - Estructura AAA (indirecta)
-- `0x4002` - Una llamada por test (indirecta)
-- `0x4004` - Tests sin lógica condicional (tarea custom)
-- `0x4005` - Tests independientes (indirecta)
+Verifica calidad de tests mediante mutaciones del código. Útil para validar calidad de tests antes de entregas.
+
+**Reglas verificadas indirectamente**:
+
+- `0x4001` - Estructura AAA (tests débiles fallan con mutaciones)
+- `0x4002` - Una llamada por test (baja cobertura indica problema)
+- `0x4004` - Tests sin lógica condicional (verificar con `verifyTestQuality`)
+- `0x4005` - Tests independientes (mutaciones revelan dependencias)
 
 Es necesario ejecutarlo explícitamente con:
 
 ```bash
 ./gradlew pitest
+
+# Verificar calidad de tests (sin lógica condicional):
+./gradlew verifyTestQuality
 ```
 
 Reportes generados en:
 
 - `build/reports/pitest/index.html`
+
+Configuración utilizada, umbrales 80% mutaciones, 54% cobertura. Excluye clases `*App`.
+Detalles en [`config/reglas.md`](config/reglas.md) sección 0x4 (Testing)
 
 ## Reporte Consolidado (Dredd)
 
