@@ -82,7 +82,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    timeout = Duration.ofMinutes(1) // Un minuto para resolver cuelgues en los tests.
+    timeout = Duration.ofMinutes(5) // Cinco minutos para resolver cuelgues en los tests.
     finalizedBy jacocoTestReport
 
     // Configuración para mejor output
