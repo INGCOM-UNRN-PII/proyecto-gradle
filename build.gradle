@@ -87,8 +87,8 @@ test {
 
     // Configuración para mejor output
     testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        events = ["passed", "skipped", "failed"]
+        exceptionFormat = "full"
         showStandardStreams = false
     }
 }
@@ -149,6 +149,7 @@ pmd {
 }
 
 tasks.withType(Pmd).configureEach {
+    def projectRootPath = project.projectDir.absolutePath
     reports {
         xml.required.set(true)
         html.required.set(true)
@@ -169,7 +170,7 @@ tasks.withType(Pmd).configureEach {
             def violations = pmdXml.file.collect { file ->
                 file.violation.collect { violation ->
                     [
-                        file: file.@name.toString().replace(project.projectDir.absolutePath + '/', ''),
+                        file: file.@name.toString().replace(projectRootPath + '/', ''),
                         line: violation.@beginline.toString(),
                         rule: violation.@rule.toString(),
                         priority: violation.@priority.toString(),
@@ -190,11 +191,12 @@ tasks.withType(Pmd).configureEach {
                     println ""
                 }
                 
+                def htmlReport = reports.html.outputLocation.asFile.get()
                 println "═══════════════════════════════════════════════════════════════"
-                println "Ver reporte completo: ${reports.html.outputLocation.asFile.get()}"
+                println "Ver reporte completo: ${htmlReport}"
                 println "═══════════════════════════════════════════════════════════════\n"
                 
-                throw new GradleException("${violations.size()} PMD rule violations were found. See the report at: ${reports.html.outputLocation.asFile.get()}")
+                throw new GradleException("${violations.size()} PMD rule violations were found. See the report at: ${htmlReport}")
             }
         }
     }
@@ -408,13 +410,16 @@ tasks.register('dredd') {
     description = 'Genera un reporte consolidado en Markdown con resultados de todas las herramientas de verificación'
     group = 'verification'
 
+    def projectRoot = project.layout.projectDirectory
+    def buildDir = project.layout.buildDirectory
+
     // Se ejecuta después de todas las tareas de verificación
     mustRunAfter check, test, checkstyleMain, checkstyleTest, pmdMain, pmdTest, spotbugsMain, spotbugsTest, jacocoTestReport
 
     doLast {
-        def reportDir = file("${layout.buildDirectory.get().asFile}/reports")
-        def dreddReport = file("${reportDir}/dredd.md")
-        def projectRoot = projectDir
+        def reportDir = buildDir.dir("reports").get().asFile
+        def dreddReport = new File(reportDir, "dredd.md")
+        def projectRootDir = projectRoot.asFile
 
         // Asegurar que el directorio de reportes existe
         reportDir.mkdirs()
@@ -422,7 +427,7 @@ tasks.register('dredd') {
         def content = new StringBuilder()
 
         // Header
-        def headerFile = file("${projectRoot}/config/dredd/header.md")
+        def headerFile = projectRoot.file("config/dredd/header.md").asFile
         if (headerFile.exists()) {
             content.append(headerFile.text)
         } else {
@@ -431,37 +436,37 @@ tasks.register('dredd') {
 
         // Checkstyle código
         content.append("\n## Checkstyle código\n")
-        def checkstyleXml = file("${layout.buildDirectory.get().asFile}/reports/checkstyle/main.xml")
-        def checkstyleXsl = file("${projectRoot}/config/stylesheets/checkstyle.xsl")
+        def checkstyleXml = buildDir.file("reports/checkstyle/main.xml").get().asFile
+        def checkstyleXsl = projectRoot.file("config/stylesheets/checkstyle.xsl").asFile
         if (checkstyleXml.exists() && checkstyleXsl.exists()) {
-            content.append(transformXml(checkstyleXml, checkstyleXsl, projectRoot))
+            content.append(transformXml(checkstyleXml, checkstyleXsl, projectRootDir))
         } else {
             content.append("No se encontró el reporte de Checkstyle.\n")
         }
 
         // PMD código
         content.append("\n## PMD código\n")
-        def pmdXml = file("${layout.buildDirectory.get().asFile}/reports/pmd/main.xml")
-        def pmdXsl = file("${projectRoot}/config/stylesheets/pmd.xsl")
+        def pmdXml = buildDir.file("reports/pmd/main.xml").get().asFile
+        def pmdXsl = projectRoot.file("config/stylesheets/pmd.xsl").asFile
         if (pmdXml.exists() && pmdXsl.exists()) {
-            content.append(transformXml(pmdXml, pmdXsl, projectRoot))
+            content.append(transformXml(pmdXml, pmdXsl, projectRootDir))
         } else {
             content.append("No se encontró el reporte de PMD.\n")
         }
 
         // SpotBugs
         content.append("\n## SpotBugs\n")
-        def spotbugsXml = file("${layout.buildDirectory.get().asFile}/reports/spotbugs/main.xml")
+        def spotbugsXml = buildDir.file("reports/spotbugs/main.xml").get().asFile
         if (spotbugsXml.exists() && spotbugsXml.length() > 0) {
-            content.append(parseSpotBugsXml(spotbugsXml, projectRoot))
+            content.append(parseSpotBugsXml(spotbugsXml, projectRootDir))
         } else {
             content.append("No se encontraron bugs con SpotBugs. ✓\n")
         }
 
         // JaCoCo - Cobertura
         content.append("\n## Cobertura de código (JaCoCo)\n")
-        def jacocoXml = file("${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml")
-        def jacocoXsl = file("${projectRoot}/config/stylesheets/jacoco.xsl")
+        def jacocoXml = buildDir.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile
+        def jacocoXsl = projectRoot.file("config/stylesheets/jacoco.xsl").asFile
         if (jacocoXml.exists() && jacocoXsl.exists()) {
             content.append(parseJacocoCoverage(jacocoXml))
         } else {
@@ -470,18 +475,18 @@ tasks.register('dredd') {
 
         // Tests
         content.append("\n## Conan ejecuta los Tests\n")
-        def testResultsDir = file("${layout.buildDirectory.get().asFile}/test-results/test")
-        def junitXsl = file("${projectRoot}/config/stylesheets/junit.xsl")
+        def testResultsDir = buildDir.dir("test-results/test").get().asFile
+        def junitXsl = projectRoot.file("config/stylesheets/junit.xsl").asFile
         if (testResultsDir.exists() && junitXsl.exists()) {
             testResultsDir.eachFileMatch(~/.*\.xml/) { testXml ->
-                content.append(transformXml(testXml, junitXsl, projectRoot))
+                content.append(transformXml(testXml, junitXsl, projectRootDir))
             }
         } else {
             content.append("No se encontraron resultados de tests.\n")
         }
 
         // Footer
-        def footerFile = file("${projectRoot}/config/dredd/footer.md")
+        def footerFile = projectRoot.file("config/dredd/footer.md").asFile
         if (footerFile.exists()) {
             content.append(footerFile.text)
         }
