@@ -28,6 +28,7 @@
     <rule ref="category/java/bestpractices.xml" >
         <!-- Por el momento, las aplicaciones son simples y por CLI -->
         <exclude name="SystemPrintln" />
+        <exclude name="UseVarargs" />
     </rule>
     
     <!-- Excluir AvoidPrintStackTrace en métodos main -->
