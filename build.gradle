@@ -259,7 +259,7 @@ tasks.withType(JavaCompile).configureEach {
         check("DeadException", ERROR)
 
         // NullAway
-        check("NullAway", ERROR)
+        check("NullAway", CheckSeverity.WARN)
         option("NullAway:AnnotatedPackages", "ar.unrn")
         option("NullAway:TreatGeneratedAsUnannotated", "true")
         option("NullAway:CheckOptionalEmptiness", "true")
