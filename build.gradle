@@ -257,6 +257,8 @@ tasks.withType(JavaCompile).configureEach {
         check("EqualsIncompatibleType", ERROR)
         check("EqualsHashCode", ERROR)
         check("DeadException", ERROR)
+        check("DefaultCharset", CheckSeverity.OFF)
+        check("StringCharset", CheckSeverity.OFF)
 
         // NullAway
         check("NullAway", CheckSeverity.WARN)
