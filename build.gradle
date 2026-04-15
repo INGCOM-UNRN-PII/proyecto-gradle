@@ -38,6 +38,15 @@ java {
     }
 }
 
+javadoc {
+    options.tags = [
+        'contract.pre:a:Precondición:',
+        'contract.post:a:Postcondición:',
+        'contract.invar:a:Invariante:'
+    ]
+    options.encoding = 'UTF-8'
+}
+
 application {
     mainClass = 'ar.unrn.LoaderApp'
 }
@@ -248,6 +257,9 @@ tasks.withType(Checkstyle).configureEach {
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
+
+        // Disable InvalidBlockTag as it doesn't recognize our contract tags
+        check("InvalidBlockTag", CheckSeverity.OFF)
 
         // Checks válidos de Error Prone
         check("MissingOverride", ERROR)
