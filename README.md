@@ -223,6 +223,42 @@ Reporte generado en:
 
 - `build/reports/dredd.md`
 
+## Documentación de Contratos (Design by Contract)
+
+El proyecto está configurado para soportar etiquetas Javadoc personalizadas que permiten documentar formalmente el comportamiento de los métodos mediante contratos:
+
+- `@contract.pre`: **Precondición**. Requisitos que deben cumplirse antes de llamar al método.
+- `@contract.post`: **Postcondición**. Garantías que el método asegura al finalizar su ejecución.
+- `@contract.invar`: **Invariante**. Condiciones que permanecen constantes durante la vida del objeto.
+
+### Ejemplo: Uso con prosa
+Ideal para descripciones conceptuales o reglas de negocio complejas.
+
+```java
+/**
+ * Transfiere fondos a otra cuenta.
+ *
+ * @param destino La cuenta que recibirá los fondos.
+ * @param monto   La cantidad a transferir.
+ * @contract.pre La cuenta de destino debe estar activa y el monto no puede ser negativo.
+ * @contract.post El saldo de la cuenta origen disminuye y el de destino aumenta.
+ */
+public void transferir(Cuenta destino, double monto) { ... }
+```
+
+### Ejemplo: Uso con código
+Ideal para expresar condiciones lógicas precisas.
+
+```java
+/**
+ * Calcula el área de un rectángulo.
+ *
+ * @contract.pre ancho > 0 && alto > 0
+ * @contract.post result == ancho * alto
+ */
+public double calcularArea(double ancho, double alto) { ... }
+```
+
 ## Estructura del proyecto
 
 ```
