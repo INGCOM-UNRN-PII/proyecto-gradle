@@ -259,6 +259,15 @@ Ideal para expresar condiciones lógicas precisas.
 public double calcularArea(double ancho, double alto) { ... }
 ```
 
+## Manejo de Excepciones Base
+
+Este proyecto incluye clases de excepción base diseñadas con fines educativos. Todas las nuevas excepciones personalizadas del dominio deben heredar de estas en lugar de `Exception` o `RuntimeException` directamente.
+
+* **`ar.unrn.excepciones.UNRNException`**: Base para crear excepciones comprobadas (*checked exceptions*). Obliga a manejar el error usando `try-catch` o a declararlo con la palabra reservada `throws`.
+* **`ar.unrn.excepciones.UNRNRuntimeException`**: Base para crear excepciones no comprobadas (*unchecked exceptions*). Representan errores de programación o fallas inesperadas en el entorno que el usuario de la API no está obligado a manejar con un bloque `try-catch` específico de manera obligatoria.
+
+Ambas clases admiten la especificación de un mensaje descriptivo y una causa subyacente para poder encapsular el rastro de la pila (Stack Trace) de otras excepciones al momento de encapsular y propagar el error.
+
 ## Estructura del proyecto
 
 ```
@@ -266,7 +275,8 @@ proyecto-gradle/
 ├── src/
 │   ├── main/java/ar/unrn/                  # Código fuente
 │   │   ├── LoaderApp.java                  # Cargador de aplicaciones
-│   │   └── PlantillaApp.java               # Plantilla de aplicación de consola
+│   │   ├── PlantillaApp.java               # Plantilla de aplicación de consola
+│   │   └── excepciones/                    # Clases base para el manejo de excepciones
 │   └── test/java/ar/unrn/                  # Tests
 │       ├── PlantillaAppTest.java           # Plantilla de tests de aplicaciones 
 │       └── ReglasArquitecturaTest.java     # Tests ArchUnit (parte de las reglas de verificación)
