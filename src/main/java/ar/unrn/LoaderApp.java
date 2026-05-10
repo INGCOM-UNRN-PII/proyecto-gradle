@@ -32,7 +32,7 @@ public class LoaderApp {
      * @param args son los argumentos de invocación que serán pasados a los
      *             otros main.
      */
-    static void main(String[] args) {
+    public static void main(String[] args) {
         Class[] clases;
         try {
             clases = getClasses(PACKAGE_TO_RUN);
@@ -115,9 +115,9 @@ public class LoaderApp {
                     assert !fileName.contains(".");
                     classes.addAll(findClasses(file, packageName + "." + fileName));
                 } else if (fileName.endsWith(".class")) {
-                    final int EXTENSION = ".class".length();
+                    int extension = ".class".length();
                     String klassName = packageName + '.'
-                            + fileName.substring(0, fileName.length() - EXTENSION);
+                            + fileName.substring(0, fileName.length() - extension);
                     classes.add(Class.forName(klassName));
                 }
             }

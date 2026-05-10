@@ -4,7 +4,8 @@ package ar.unrn.excepciones;
  * Excepción base no comprobada (unchecked exception) para la aplicación.
  * <p>
  * Con fines educativos y de diseño, todas las excepciones no comprobadas
- * que se creen en el proyecto deben heredar de esta clase en lugar de heredar directamente de {@link RuntimeException}.
+ * que se creen en el proyecto deben heredar de esta clase en lugar de
+ * heredar directamente de {@link RuntimeException}.
  * </p>
  * Esta clase es abstracta, para evitar el lanzamiento su lanzamiento directo.
  */

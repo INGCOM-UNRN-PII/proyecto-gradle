@@ -4,7 +4,8 @@ package ar.unrn.excepciones;
  * Excepción base comprobada (checked exception) para la aplicación.
  * <p>
  * Con fines educativos y de diseño, todas las excepciones comprobadas
- * que se creen en el proyecto deben heredar de esta clase en lugar de heredar directamente de {@link Exception}.
+ * que se creen en el proyecto deben heredar de esta clase en lugar de
+ * heredar directamente de {@link Exception}.
  * </p>
  * Esta clase es abstracta, para evitar el lanzamiento su lanzamiento directo.
  */
